@@ -20,7 +20,7 @@ a real transaction on-chain.
 
 ## 2. Links
 
-- **Live frontend URL:** `<FRONTEND_URL>`
+- **Live frontend URL:** `https://role-based-access-control-seven-taupe.vercel.app/`
 - **Verified contract:** `https://sepolia.etherscan.io/address/0x18a5883dA6302e13021910235Cb74653b8804505#code`
 
 ---

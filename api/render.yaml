@@ -1,0 +1,25 @@
+# Render blueprint. In Render: New + → Blueprint → point at this repo.
+# The service's Root Directory is `api`. Fill secrets in the dashboard.
+services:
+  - type: web
+    name: adminpanel-api
+    runtime: node
+    rootDir: api
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: RPC_URL
+        sync: false
+      - key: CONTRACT_ADDRESS
+        value: "0x18a5883dA6302e13021910235Cb74653b8804505"
+      - key: CHAIN_ID
+        value: "11155111"
+      - key: EXPLORER_BASE
+        value: "https://sepolia.etherscan.io"
+      # Leave these unset for a read-only API, or set BOTH to enable writes:
+      - key: OPERATOR_PRIVATE_KEY
+        sync: false
+      - key: API_KEY
+        sync: false

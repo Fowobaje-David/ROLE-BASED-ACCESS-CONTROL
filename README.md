@@ -28,7 +28,15 @@ TESTING_HANDOFF.md                # fill-in-the-blanks doc for an independent te
 frontend/                         # React + ethers v6 + Tailwind app
   .env.local.example              # copy to .env.local and fill in
   src/abi/AdminPanel.json         # exported ABI (regenerate with npm run export-abi)
+api/                              # REST API infrastructure over the contract (Express + ethers)
+  README.md                       # API documentation + integration guide
+  src/openapi.js                  # OpenAPI 3 spec -> interactive reference at /docs
 ```
+
+This repo has three parts: the **smart contract** (Hardhat), the **frontend dApp**
+(`frontend/`), and a **REST API** (`api/`) that lets other applications integrate
+over HTTP without a wallet. See **[api/README.md](api/README.md)** for the API docs
+and the hosted interactive reference (Swagger UI at `/docs`).
 
 ---
 
