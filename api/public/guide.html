@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AdminPanel API — Documentation</title>
+<style>
+  :root{
+    --bg:#0a0f0e; --panel:#111817; --panel2:#0d1413; --border:#1e2b27;
+    --text:#dce5e1; --muted:#8b9a94; --heading:#f3f7f5;
+    --accent:#22c55e; --accent-dim:#16a34a;
+    --get:#22c55e; --post:#3b82f6; --put:#f59e0b; --delete:#ef4444;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;font-size:15.5px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* Layout */
+  .shell{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+  aside{border-right:1px solid var(--border);background:var(--panel2);
+    position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px}
+  main{min-width:0}
+  .content{max-width:860px;margin:0 auto;padding:38px 32px 90px}
+
+  /* Sidebar */
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--heading);
+    font-size:17px;margin-bottom:4px}
+  .brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#0e7a3a);display:inline-block}
+  .brand small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:2px}
+  nav.side{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  nav.side .grp{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:16px 8px 6px}
+  nav.side a{color:var(--text);padding:7px 10px;border-radius:8px;font-size:14px}
+  nav.side a:hover{background:#16211e;text-decoration:none}
+  nav.side a.active{background:#14261d;color:var(--accent);font-weight:600}
+  .side-cta{margin-top:22px;display:block;text-align:center;background:var(--accent);
+    color:#04120a;font-weight:700;padding:9px;border-radius:9px}
+  .side-cta:hover{background:#28d268;text-decoration:none}
+
+  /* Topbar (mobile) */
+  .topbar{display:none}
+
+  /* Headings */
+  h1{font-size:34px;line-height:1.15;color:var(--heading);margin:6px 0 6px;font-weight:800}
+  h2{font-size:23px;color:var(--heading);margin:44px 0 12px;font-weight:700;
+    padding-top:10px;border-top:1px solid var(--border)}
+  h3{font-size:16.5px;color:var(--heading);margin:26px 0 8px}
+  .lede{color:var(--muted);font-size:17px;margin-bottom:8px}
+  p{margin:10px 0}
+  .muted{color:var(--muted)}
+
+  /* Pills / badges */
+  .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;
+    background:#14261d;color:var(--accent);border:1px solid #1e3a2b;font-weight:600}
+  .m{display:inline-block;font-weight:800;font-size:11.5px;letter-spacing:.03em;
+    padding:3px 8px;border-radius:6px;color:#04120a;min-width:52px;text-align:center}
+  .m.get{background:var(--get)} .m.post{background:var(--post);color:#fff}
+  .m.put{background:var(--put)} .m.delete{background:var(--delete);color:#fff}
+
+  /* Cards / callouts */
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;margin:16px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .note{border-left:3px solid var(--accent);background:#0f1a15;padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+  .warn{border-left:3px solid var(--put);background:#1a160c;padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+  td code{color:var(--text);background:#0d1413;padding:2px 6px;border-radius:5px}
+  tbody tr:hover{background:#0e1512}
+
+  /* Code blocks */
+  .code{background:var(--panel2);border:1px solid var(--border);border-radius:10px;margin:14px 0;overflow:hidden}
+  .code .bar{display:flex;align-items:center;justify-content:space-between;
+    padding:8px 12px;border-bottom:1px solid var(--border);background:#0b110f}
+  .code .bar .dots{display:flex;gap:6px}
+  .code .bar .dots i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .code .bar .lang{color:var(--muted);font-size:12px}
+  .code pre{margin:0;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.6;color:#cfe7d8}
+  .copy{background:#16211e;border:1px solid var(--border);color:var(--muted);
+    font-size:11.5px;padding:3px 9px;border-radius:6px;cursor:pointer}
+  .copy:hover{color:var(--text)}
+  .tabs{display:flex;gap:4px;padding:8px 10px 0}
+  .tabs button{background:none;border:none;color:var(--muted);font-size:13px;
+    padding:6px 12px;border-radius:8px 8px 0 0;cursor:pointer}
+  .tabs button.active{color:var(--accent);background:var(--panel2)}
+  .tabpane{display:none}.tabpane.active{display:block}
+
+  .footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+
+  @media (max-width:860px){
+    .shell{grid-template-columns:1fr}
+    aside{display:none}
+    .topbar{display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:5;background:var(--panel2);
+      border-bottom:1px solid var(--border);padding:12px 18px}
+    .content{padding:24px 18px 70px}
+    .grid2{grid-template-columns:1fr}
+    h1{font-size:27px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand"><span class="dot"></span><div>AdminPanel API<small>v1 · Sepolia</small></div></div>
+    <nav class="side">
+      <span class="grp">Guide</span>
+      <a href="#overview" class="nav">Overview</a>
+      <a href="#base-url" class="nav">Base URL &amp; Versioning</a>
+      <a href="#auth" class="nav">Authentication</a>
+      <a href="#integrate" class="nav">Quickstart &amp; Integration</a>
+      <span class="grp">Reference</span>
+      <a href="#endpoints" class="nav">Endpoints</a>
+      <a href="#errors" class="nav">Errors</a>
+      <a href="/docs/">Interactive API (Swagger) ↗</a>
+    </nav>
+    <a class="side-cta" href="/docs/">Try the API live →</a>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span><div>AdminPanel API</div></div>
+      <a class="pill" href="/docs/">Try it live →</a>
+    </div>
+
+    <div class="content">
+      <!-- OVERVIEW -->
+      <section id="overview">
+        <span class="pill">REST API · Ethereum Sepolia</span>
+        <h1>AdminPanel API</h1>
+        <p class="lede">A REST interface to a role-based access-control smart contract. Read roles, users
+          and settings — and perform admin actions — over plain HTTP. No wallet or web3 library required.</p>
+        <div class="note">
+          <strong>What this is.</strong> Our smart contract decides who is an <b>Owner</b>, <b>Moderator</b>,
+          or <b>Regular&nbsp;User</b> on-chain. This API puts a normal web layer in front of it, so any
+          application can integrate by making standard HTTP requests instead of talking to the blockchain directly.
+        </div>
+
+        <h3>Permission tiers</h3>
+        <table>
+          <thead><tr><th>Role</th><th>Can do</th></tr></thead>
+          <tbody>
+            <tr><td><code>OWNER</code></td><td>Everything: register/remove users, promote moderators, edit settings, moderate</td></tr>
+            <tr><td><code>MODERATOR</code></td><td>Deactivate/reactivate users, approve content, + all user reads</td></tr>
+            <tr><td><code>REGULAR_USER</code></td><td>Self-service actions (handled in the dApp, not this API)</td></tr>
+            <tr><td><code>NONE</code></td><td>Read public data only</td></tr>
+          </tbody>
+        </table>
+        <p class="muted">Underlying contract:
+          <a href="https://sepolia.etherscan.io/address/0x18a5883dA6302e13021910235Cb74653b8804505#code" target="_blank" rel="noopener">
+          0x18a5883dA6302e13021910235Cb74653b8804505</a> (verified on Etherscan).</p>
+      </section>
+
+      <!-- BASE URL -->
+      <section id="base-url">
+        <h2>Base URL &amp; Versioning</h2>
+        <p>All resource endpoints are served under <code>/api/v1</code>. Breaking changes ship under a new version prefix.</p>
+        <div class="code">
+          <div class="bar"><span class="lang">Base URL</span><button class="copy">Copy</button></div>
+          <pre><span class="host">https://your-host</span>/api/v1</pre>
+        </div>
+      </section>
+
+      <!-- AUTH -->
+      <section id="auth">
+        <h2>Authentication</h2>
+        <div class="grid2">
+          <div class="card"><h3 style="margin-top:0">Read endpoints</h3>
+            <p class="muted" style="margin-bottom:0">Open — no authentication. They only call <code>view</code> functions on the contract.</p></div>
+          <div class="card"><h3 style="margin-top:0">Write &amp; admin endpoints</h3>
+            <p class="muted" style="margin-bottom:0">Require an API key sent in the <code>x-api-key</code> header. The server signs the transaction with an operator wallet.</p></div>
+        </div>
+        <div class="code">
+          <div class="bar"><span class="lang">HTTP header</span><button class="copy">Copy</button></div>
+          <pre>x-api-key: YOUR_API_KEY</pre>
+        </div>
+        <div class="warn"><strong>Note.</strong> Write access depends on the deployment. A public read-only
+          instance returns <code>503</code> for write endpoints. Treat the API key like a password and always call over HTTPS.</div>
+      </section>
+
+      <!-- INTEGRATE -->
+      <section id="integrate">
+        <h2>Quickstart &amp; Integration</h2>
+        <p>Look up a wallet's role (open) and register a user (needs an API key). Pick your language:</p>
+        <div class="code">
+          <div class="tabs">
+            <button data-tab="curl" class="active">curl</button>
+            <button data-tab="js">JavaScript</button>
+            <button data-tab="py">Python</button>
+          </div>
+          <div class="bar"><span class="lang">example</span><button class="copy">Copy</button></div>
+          <div class="tabpane active" data-pane="curl"><pre># Read a wallet's role (no auth)
+curl <span class="host">https://your-host</span>/api/v1/roles/0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857
+
+# Register a user (needs API key; server signs the tx)
+curl -X POST <span class="host">https://your-host</span>/api/v1/users \
+  -H "content-type: application/json" \
+  -H "x-api-key: $API_KEY" \
+  -d '{"address":"0x7E2C9...85d7d","username":"alice"}'</pre></div>
+          <div class="tabpane" data-pane="js"><pre>const BASE = "<span class="host">https://your-host</span>";
+
+// read
+const { role } = await fetch(`${BASE}/api/v1/roles/${address}`).then(r => r.json());
+
+// write
+const res = await fetch(`${BASE}/api/v1/users`, {
+  method: "POST",
+  headers: { "content-type": "application/json", "x-api-key": API_KEY },
+  body: JSON.stringify({ address, username: "alice" }),
+});
+const { txHash, explorerUrl } = await res.json();</pre></div>
+          <div class="tabpane" data-pane="py"><pre>import requests
+BASE = "<span class="host">https://your-host</span>"
+
+role = requests.get(f"{BASE}/api/v1/roles/{address}").json()["role"]
+
+res = requests.post(
+    f"{BASE}/api/v1/users",
+    headers={"x-api-key": API_KEY},
+    json={"address": address, "username": "alice"},
+)
+print(res.json()["explorerUrl"])</pre></div>
+        </div>
+        <h3>A successful write returns</h3>
+        <div class="code">
+          <div class="bar"><span class="lang">200 OK</span><button class="copy">Copy</button></div>
+          <pre>{
+  "success": true,
+  "txHash": "0xabc…",
+  "status": "confirmed",
+  "blockNumber": 6543210,
+  "explorerUrl": "https://sepolia.etherscan.io/tx/0xabc…",
+  "action": "registerUser"
+}</pre>
+        </div>
+      </section>
+
+      <!-- ENDPOINTS -->
+      <section id="endpoints">
+        <h2>Endpoints</h2>
+        <p class="muted">Full, always-current reference with a “Try it out” console lives at
+          <a href="/docs/">/docs</a>. Endpoints marked <span class="pill">key</span> require <code>x-api-key</code>.</p>
+
+        <h3>Roles</h3>
+        <table><tbody>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/roles/{address}</code></td><td>Wallet's highest role</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/roles/{address}/has/{role}</code></td><td>Check a specific role</td></tr>
+        </tbody></table>
+
+        <h3>Users</h3>
+        <table><tbody>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users</code> <span class="pill">key</span></td><td>List all users</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/count</code> <span class="pill">key</span></td><td>Total registered users</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/{address}</code></td><td>A user's public profile</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/{address}/active</code></td><td>Active status</td></tr>
+          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users</code> <span class="pill">key</span></td><td>Register a user (grants REGULAR_USER)</td></tr>
+          <tr><td><span class="m delete">DEL</span></td><td><code>/api/v1/users/{address}</code> <span class="pill">key</span></td><td>Remove a user</td></tr>
+          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users/{address}/deactivate</code> <span class="pill">key</span></td><td>Deactivate a user</td></tr>
+          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users/{address}/reactivate</code> <span class="pill">key</span></td><td>Reactivate a user</td></tr>
+        </tbody></table>
+
+        <h3>Moderators · Settings · Content</h3>
+        <table><tbody>
+          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/moderators</code> <span class="pill">key</span></td><td>Promote an address to moderator</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/settings/{key}</code></td><td>Read a system setting</td></tr>
+          <tr><td><span class="m put">PUT</span></td><td><code>/api/v1/settings/{key}</code> <span class="pill">key</span></td><td>Create/update a setting</td></tr>
+          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/content/approve</code> <span class="pill">key</span></td><td>Approve user content</td></tr>
+        </tbody></table>
+
+        <h3>System</h3>
+        <table><tbody>
+          <tr><td><span class="m get">GET</span></td><td><code>/health</code></td><td>Liveness &amp; chain connectivity</td></tr>
+          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/tx/{hash}</code></td><td>Transaction confirmation status</td></tr>
+        </tbody></table>
+
+        <h3>Request bodies</h3>
+        <table>
+          <thead><tr><th>Endpoint</th><th>JSON body</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /users</code>, <code>POST /moderators</code></td><td><code>{ "address": "0x…", "username": "string" }</code></td></tr>
+            <tr><td><code>PUT /settings/{key}</code></td><td><code>{ "value": "string" }</code></td></tr>
+            <tr><td><code>POST /content/approve</code></td><td><code>{ "address": "0x…", "contentId": "string" }</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ERRORS -->
+      <section id="errors">
+        <h2>Errors</h2>
+        <p>Every error is JSON with a machine-readable <code>code</code> and a human message:</p>
+        <div class="code">
+          <div class="bar"><span class="lang">error shape</span><button class="copy">Copy</button></div>
+          <pre>{ "error": { "code": "bad_request", "message": "…", "details": { } } }</pre>
+        </div>
+        <table>
+          <thead><tr><th>Status</th><th>code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>400</td><td><code>bad_request</code></td><td>Invalid input (bad address, missing field)</td></tr>
+            <tr><td>401</td><td><code>unauthorized</code></td><td>Missing or invalid API key</td></tr>
+            <tr><td>404</td><td><code>not_found</code></td><td>Unknown route or unregistered user</td></tr>
+            <tr><td>409</td><td><code>conflict</code></td><td>On-chain revert (e.g. “User does not exist”)</td></tr>
+            <tr><td>429</td><td><code>rate_limited</code></td><td>Too many requests (120/min per IP)</td></tr>
+            <tr><td>502</td><td><code>upstream_error</code></td><td>Blockchain RPC unreachable</td></tr>
+            <tr><td>503</td><td><code>service_unavailable</code></td><td>Writes disabled, or operator out of gas</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="footer">
+        AdminPanel API · Role-based access control on Ethereum Sepolia ·
+        <a href="/docs/">Interactive reference</a> ·
+        <a href="/openapi.json">OpenAPI spec</a> ·
+        <a href="/health">Status</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Show the real host in every code example.
+  document.querySelectorAll(".host").forEach(function (el) { el.textContent = location.origin; });
+
+  // Copy buttons.
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var block = btn.closest(".code");
+      var pane = block.querySelector(".tabpane.active pre") || block.querySelector("pre");
+      navigator.clipboard.writeText(pane.innerText).then(function () {
+        var t = btn.textContent; btn.textContent = "Copied ✓";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      });
+    });
+  });
+
+  // Code tabs.
+  document.querySelectorAll(".tabs").forEach(function (tabs) {
+    var block = tabs.closest(".code");
+    tabs.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        tabs.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
+        block.querySelectorAll(".tabpane").forEach(function (p) { p.classList.remove("active"); });
+        b.classList.add("active");
+        block.querySelector('[data-pane="' + b.dataset.tab + '"]').classList.add("active");
+      });
+    });
+  });
+
+  // Highlight the active section in the sidebar while scrolling.
+  var links = Array.prototype.slice.call(document.querySelectorAll("nav.side a.nav"));
+  var map = {};
+  links.forEach(function (l) { var id = l.getAttribute("href").slice(1); if (id) map[id] = l; });
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        links.forEach(function (l) { l.classList.remove("active"); });
+        if (map[e.target.id]) map[e.target.id].classList.add("active");
+      }
+    });
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  document.querySelectorAll("main section[id]").forEach(function (s) { obs.observe(s); });
+</script>
+</body>
+</html>

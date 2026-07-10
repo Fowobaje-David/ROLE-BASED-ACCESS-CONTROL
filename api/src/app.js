@@ -1,4 +1,5 @@
 "use strict";
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -55,10 +56,9 @@ function buildApp() {
     })
   );
 
-  // --- Landing page ---
-  app.get("/", (req, res) => {
-    res.type("html").send(landingHtml());
-  });
+  // --- Landing page: premium styled documentation guide ---
+  const guidePath = path.join(__dirname, "..", "public", "guide.html");
+  app.get("/", (req, res) => res.sendFile(guidePath));
 
   // --- API ---
   app.use("/", systemRoutes); // /health, /api/v1/tx/:hash
@@ -91,37 +91,6 @@ function buildApp() {
   });
 
   return app;
-}
-
-function landingHtml() {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AdminPanel API</title>
-<style>
-:root{color-scheme:light dark}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:760px;margin:6vh auto;padding:0 20px;line-height:1.6}
-h1{margin-bottom:0}.sub{color:#64748b;margin-top:4px}
-code{background:#0f172a12;padding:2px 6px;border-radius:6px}
-a.btn{display:inline-block;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;margin:8px 8px 0 0}
-.grid{margin-top:24px}.row{padding:8px 0;border-top:1px solid #e2e8f0}
-.m{font-weight:700;color:#7c3aed}.pill{font-size:12px;background:#7c3aed18;color:#7c3aed;border-radius:999px;padding:2px 8px;margin-left:6px}
-</style></head><body>
-<h1>AdminPanel API</h1>
-<p class="sub">REST interface to a role-based access-control smart contract on Ethereum Sepolia.</p>
-<p>
-  <a class="btn" href="/docs">Interactive API reference →</a>
-  <a class="btn" style="background:#334155" href="/openapi.json">OpenAPI spec</a>
-  <a class="btn" style="background:#334155" href="/health">Health</a>
-</p>
-<div class="grid">
-  <div class="row"><span class="m">GET</span> <code>/api/v1/roles/{address}</code> — a wallet's role</div>
-  <div class="row"><span class="m">GET</span> <code>/api/v1/users/{address}</code> — a user's profile</div>
-  <div class="row"><span class="m">GET</span> <code>/api/v1/settings/{key}</code> — a system setting</div>
-  <div class="row"><span class="m">POST</span> <code>/api/v1/users</code> <span class="pill">API key</span> — register a user</div>
-  <div class="row"><span class="m">POST</span> <code>/api/v1/moderators</code> <span class="pill">API key</span> — promote a moderator</div>
-</div>
-<p class="sub" style="margin-top:24px">Contract: <code>${config.CONTRACT_ADDRESS}</code> · Chain ID ${config.CHAIN_ID}</p>
-</body></html>`;
 }
 
 module.exports = { buildApp };
