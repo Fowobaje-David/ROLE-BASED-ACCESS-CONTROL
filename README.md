@@ -38,6 +38,9 @@ This repo has three parts: the **smart contract** (Hardhat), the **frontend dApp
 over HTTP without a wallet. See **[api/README.md](api/README.md)** for the API docs
 and the hosted interactive reference (Swagger UI at `/docs`).
 
+- **[API_INFRASTRUCTURE.md](API_INFRASTRUCTURE.md)** — architecture, hosting, stack,
+  data layer, and security design of the API (the "how and where it runs" document).
+
 ---
 
 ## Human steps (in order)
