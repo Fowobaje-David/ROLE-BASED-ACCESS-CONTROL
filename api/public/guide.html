@@ -1,372 +1,816 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="AdminPanel API — REST interface to a role-based access-control smart contract on Ethereum Sepolia." />
 <title>AdminPanel API — Documentation</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%2310b981'/><path d='M30 52l14 14 26-30' stroke='%23052e1c' stroke-width='11' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
 <style>
-  :root{
-    --bg:#0a0f0e; --panel:#111817; --panel2:#0d1413; --border:#1e2b27;
-    --text:#dce5e1; --muted:#8b9a94; --heading:#f3f7f5;
-    --accent:#22c55e; --accent-dim:#16a34a;
-    --get:#22c55e; --post:#3b82f6; --put:#f59e0b; --delete:#ef4444;
-    --radius:12px;
-  }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;background:var(--bg);color:var(--text);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.65;font-size:15.5px}
-  a{color:var(--accent);text-decoration:none}
-  a:hover{text-decoration:underline}
-  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+/* ============ TOKENS ============ */
+:root[data-theme="dark"]{
+  --bg:#08090a; --bg-soft:#0c0e10; --panel:#101315; --panel-2:#151a1d; --elev:#1a2024;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.12);
+  --tx:#e8ebed; --tx-2:#a2acb4; --tx-3:#6f7a83;
+  --acc:#10b981; --acc-2:#34d399; --acc-soft:rgba(16,185,129,.12); --acc-line:rgba(16,185,129,.28);
+  --glow:radial-gradient(1000px 380px at 12% -8%, rgba(16,185,129,.16), transparent 60%);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.7);
+  --get:#10b981; --post:#3b82f6; --put:#f59e0b; --del:#ef4444;
+  --code-bg:#0a0d0f;
+  --tok-key:#c084fc; --tok-str:#6ee7b7; --tok-num:#fbbf24; --tok-com:#5b666e; --tok-fn:#60a5fa; --tok-flag:#f472b6; --tok-prop:#7dd3fc;
+}
+:root[data-theme="light"]{
+  --bg:#ffffff; --bg-soft:#fafbfc; --panel:#ffffff; --panel-2:#f6f8f9; --elev:#eef1f3;
+  --line:rgba(9,20,28,.10); --line-2:rgba(9,20,28,.18);
+  --tx:#111c22; --tx-2:#4d5a63; --tx-3:#78868f;
+  --acc:#059669; --acc-2:#047857; --acc-soft:rgba(5,150,105,.10); --acc-line:rgba(5,150,105,.26);
+  --glow:radial-gradient(1000px 380px at 12% -8%, rgba(16,185,129,.13), transparent 60%);
+  --shadow:0 1px 2px rgba(16,24,32,.05), 0 12px 28px -14px rgba(16,24,32,.22);
+  --get:#059669; --post:#2563eb; --put:#d97706; --del:#dc2626;
+  --code-bg:#0e1417;
+  --tok-key:#c084fc; --tok-str:#6ee7b7; --tok-num:#fbbf24; --tok-com:#5b666e; --tok-fn:#60a5fa; --tok-flag:#f472b6; --tok-prop:#7dd3fc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:88px;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;line-height:1.7;letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;font-variant-ligatures:none}
+a{color:var(--acc);text-decoration:none}
+a:hover{color:var(--acc-2)}
+::selection{background:var(--acc-soft);color:var(--tx)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
 
-  /* Layout */
-  .shell{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
-  aside{border-right:1px solid var(--border);background:var(--panel2);
-    position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px}
-  main{min-width:0}
-  .content{max-width:860px;margin:0 auto;padding:38px 32px 90px}
+/* scrollbars */
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:20px}
+*::-webkit-scrollbar-track{background:transparent}
 
-  /* Sidebar */
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--heading);
-    font-size:17px;margin-bottom:4px}
-  .brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#0e7a3a);display:inline-block}
-  .brand small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:2px}
-  nav.side{margin-top:22px;display:flex;flex-direction:column;gap:2px}
-  nav.side .grp{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:16px 8px 6px}
-  nav.side a{color:var(--text);padding:7px 10px;border-radius:8px;font-size:14px}
-  nav.side a:hover{background:#16211e;text-decoration:none}
-  nav.side a.active{background:#14261d;color:var(--accent);font-weight:600}
-  .side-cta{margin-top:22px;display:block;text-align:center;background:var(--accent);
-    color:#04120a;font-weight:700;padding:9px;border-radius:9px}
-  .side-cta:hover{background:#28d268;text-decoration:none}
+/* ============ HEADER ============ */
+header{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:blur(14px) saturate(150%);
+  border-bottom:1px solid var(--line);
+}
+.hwrap{display:flex;align-items:center;gap:18px;height:60px;padding:0 22px;max-width:1600px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--tx);letter-spacing:-.02em;white-space:nowrap}
+.logo .mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--acc-2),var(--acc) 60%,#047857);box-shadow:0 2px 10px -2px var(--acc-line)}
+.logo .mark svg{width:15px;height:15px}
+.logo .v{font-size:10.5px;font-weight:600;color:var(--acc);background:var(--acc-soft);
+  border:1px solid var(--acc-line);padding:1px 6px;border-radius:20px;letter-spacing:0}
 
-  /* Topbar (mobile) */
-  .topbar{display:none}
+.search{flex:1;max-width:420px;margin-left:8px;position:relative}
+.search input{
+  width:100%;height:34px;padding:0 34px 0 34px;border-radius:9px;
+  background:var(--panel-2);border:1px solid var(--line);color:var(--tx);
+  font-size:13.5px;font-family:inherit;transition:.15s;
+}
+.search input::placeholder{color:var(--tx-3)}
+.search input:focus{outline:none;border-color:var(--acc-line);background:var(--panel);box-shadow:0 0 0 3px var(--acc-soft)}
+.search svg{position:absolute;left:11px;top:9px;width:15px;height:15px;stroke:var(--tx-3);fill:none;stroke-width:2}
+.search kbd{position:absolute;right:8px;top:8px;font-size:10.5px;color:var(--tx-3);
+  border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--bg);font-family:inherit}
 
-  /* Headings */
-  h1{font-size:34px;line-height:1.15;color:var(--heading);margin:6px 0 6px;font-weight:800}
-  h2{font-size:23px;color:var(--heading);margin:44px 0 12px;font-weight:700;
-    padding-top:10px;border-top:1px solid var(--border)}
-  h3{font-size:16.5px;color:var(--heading);margin:26px 0 8px}
-  .lede{color:var(--muted);font-size:17px;margin-bottom:8px}
-  p{margin:10px 0}
-  .muted{color:var(--muted)}
+.hactions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.status{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx-2);
+  border:1px solid var(--line);background:var(--panel-2);padding:5px 11px;border-radius:20px;white-space:nowrap}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--tx-3);flex:none}
+.status.ok .dot{background:var(--acc);box-shadow:0 0 0 0 var(--acc-line);animation:pulse 2.2s infinite}
+.status.err .dot{background:var(--del)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.ibtn{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--tx-2);cursor:pointer;transition:.15s}
+.ibtn:hover{color:var(--tx);border-color:var(--line-2);background:var(--elev)}
+.ibtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9}
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:13.5px;font-weight:600;border:1px solid transparent;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn.primary{background:linear-gradient(180deg,var(--acc-2),var(--acc));color:#04150e;box-shadow:0 4px 14px -6px var(--acc-line)}
+.btn.primary:hover{filter:brightness(1.08);color:#04150e}
+.btn.ghost{border-color:var(--line);background:var(--panel-2);color:var(--tx-2)}
+.btn.ghost:hover{color:var(--tx);border-color:var(--line-2)}
+.menu-btn{display:none}
 
-  /* Pills / badges */
-  .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;
-    background:#14261d;color:var(--accent);border:1px solid #1e3a2b;font-weight:600}
-  .m{display:inline-block;font-weight:800;font-size:11.5px;letter-spacing:.03em;
-    padding:3px 8px;border-radius:6px;color:#04120a;min-width:52px;text-align:center}
-  .m.get{background:var(--get)} .m.post{background:var(--post);color:#fff}
-  .m.put{background:var(--put)} .m.delete{background:var(--delete);color:#fff}
+/* ============ LAYOUT ============ */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr) 210px;gap:0;max-width:1600px;margin:0 auto}
+nav.side{position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;padding:26px 14px 40px 22px;border-right:1px solid var(--line)}
+.sgrp{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);margin:20px 10px 7px}
+.sgrp:first-child{margin-top:0}
+nav.side a{display:flex;align-items:center;gap:8px;padding:6.5px 10px;border-radius:8px;
+  color:var(--tx-2);font-size:13.8px;font-weight:500;transition:.13s;position:relative}
+nav.side a:hover{color:var(--tx);background:var(--panel-2)}
+nav.side a.active{color:var(--acc);background:var(--acc-soft);font-weight:600}
+nav.side a.active::before{content:"";position:absolute;left:-22px;top:50%;transform:translateY(-50%);
+  width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--acc)}
 
-  /* Cards / callouts */
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-    padding:16px 18px;margin:16px 0}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .note{border-left:3px solid var(--accent);background:#0f1a15;padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
-  .warn{border-left:3px solid var(--put);background:#1a160c;padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+main{min-width:0;padding:0 44px 100px;background:var(--glow);background-repeat:no-repeat}
+.mx{max-width:780px}
 
-  /* Tables */
-  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;display:block;overflow-x:auto}
-  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
-  th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
-  td code{color:var(--text);background:#0d1413;padding:2px 6px;border-radius:5px}
-  tbody tr:hover{background:#0e1512}
+aside.toc{position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;padding:30px 22px 40px 8px}
+.toc h6{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);margin-bottom:10px}
+.toc a{display:block;padding:4.5px 0 4.5px 12px;border-left:2px solid var(--line);
+  color:var(--tx-3);font-size:12.8px;transition:.13s;line-height:1.5}
+.toc a:hover{color:var(--tx-2);border-color:var(--line-2)}
+.toc a.active{color:var(--acc);border-color:var(--acc);font-weight:600}
 
-  /* Code blocks */
-  .code{background:var(--panel2);border:1px solid var(--border);border-radius:10px;margin:14px 0;overflow:hidden}
-  .code .bar{display:flex;align-items:center;justify-content:space-between;
-    padding:8px 12px;border-bottom:1px solid var(--border);background:#0b110f}
-  .code .bar .dots{display:flex;gap:6px}
-  .code .bar .dots i{width:10px;height:10px;border-radius:50%;display:inline-block}
-  .code .bar .lang{color:var(--muted);font-size:12px}
-  .code pre{margin:0;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.6;color:#cfe7d8}
-  .copy{background:#16211e;border:1px solid var(--border);color:var(--muted);
-    font-size:11.5px;padding:3px 9px;border-radius:6px;cursor:pointer}
-  .copy:hover{color:var(--text)}
-  .tabs{display:flex;gap:4px;padding:8px 10px 0}
-  .tabs button{background:none;border:none;color:var(--muted);font-size:13px;
-    padding:6px 12px;border-radius:8px 8px 0 0;cursor:pointer}
-  .tabs button.active{color:var(--accent);background:var(--panel2)}
-  .tabpane{display:none}.tabpane.active{display:block}
+/* ============ HERO ============ */
+.hero{padding:66px 0 44px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
+  color:var(--acc);background:var(--acc-soft);border:1px solid var(--acc-line);
+  padding:5px 12px;border-radius:30px;margin-bottom:22px;letter-spacing:.01em}
+.eyebrow .d{width:5px;height:5px;border-radius:50%;background:var(--acc)}
+h1{font-size:47px;line-height:1.08;font-weight:800;letter-spacing:-.035em;margin-bottom:18px;
+  background:linear-gradient(170deg,var(--tx) 30%,var(--tx-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:18.5px;line-height:1.65;color:var(--tx-2);max-width:640px;letter-spacing:-.01em}
+.hero-cta{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.hero-cta .btn{height:40px;padding:0 18px;font-size:14px}
 
-  .footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:40px}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;transition:.15s}
+.fact:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.fact .k{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-3);margin-bottom:5px}
+.fact .v{font-size:13.5px;font-weight:600;color:var(--tx);word-break:break-word;line-height:1.45}
 
-  @media (max-width:860px){
-    .shell{grid-template-columns:1fr}
-    aside{display:none}
-    .topbar{display:flex;align-items:center;justify-content:space-between;
-      position:sticky;top:0;z-index:5;background:var(--panel2);
-      border-bottom:1px solid var(--border);padding:12px 18px}
-    .content{padding:24px 18px 70px}
-    .grid2{grid-template-columns:1fr}
-    h1{font-size:27px}
-  }
+/* ============ SECTIONS / TYPE ============ */
+section{padding-top:58px;scroll-margin-top:80px}
+h2{font-size:29px;font-weight:750;letter-spacing:-.025em;line-height:1.25;margin-bottom:10px}
+h3{font-size:17px;font-weight:680;letter-spacing:-.012em;margin:32px 0 10px}
+.sub{color:var(--tx-2);font-size:15.5px;line-height:1.72;margin-bottom:4px}
+p{color:var(--tx-2);margin:12px 0;line-height:1.75}
+p strong,li strong{color:var(--tx);font-weight:640}
+ul{margin:12px 0 12px 2px;list-style:none}
+ul li{color:var(--tx-2);padding-left:20px;position:relative;margin:7px 0;line-height:1.7}
+ul li::before{content:"";position:absolute;left:4px;top:11px;width:5px;height:5px;border-radius:50%;background:var(--acc);opacity:.65}
+.inline{font-size:13px;background:var(--panel-2);border:1px solid var(--line);
+  padding:2px 6px;border-radius:6px;color:var(--tx);white-space:nowrap}
+
+/* ============ ROLE CARDS ============ */
+.roles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+.role{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 17px;
+  position:relative;overflow:hidden;transition:.16s}
+.role:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.role::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--c)}
+.role .n{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:750;letter-spacing:.02em;margin-bottom:6px;color:var(--c)}
+.role .n .sq{width:8px;height:8px;border-radius:2.5px;background:var(--c)}
+.role p{margin:0;font-size:13.5px;color:var(--tx-2);line-height:1.6}
+
+/* ============ ARCHITECTURE ============ */
+.arch{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:22px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 12px;overflow-x:auto}
+.node{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 10px;position:relative;min-width:120px}
+.node:not(:last-child)::after{content:"";position:absolute;right:-10px;top:24px;width:20px;height:1.5px;
+  background:linear-gradient(90deg,var(--line-2),var(--acc));opacity:.7}
+.node .ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;margin-bottom:11px;
+  background:var(--panel-2);border:1px solid var(--line);color:var(--acc)}
+.node .ic svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7}
+.node .t{font-size:13px;font-weight:650;color:var(--tx);letter-spacing:-.01em}
+.node .s{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.45}
+
+/* ============ CODE ============ */
+.code{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;margin:16px 0;overflow:hidden;box-shadow:var(--shadow)}
+.code .top{display:flex;align-items:center;gap:4px;padding:7px 8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.code .tab{background:none;border:none;color:#7c888f;font-size:12.5px;font-weight:560;font-family:inherit;
+  padding:7px 13px;border-radius:8px 8px 0 0;cursor:pointer;transition:.13s}
+.code .tab:hover{color:#c7d0d5}
+.code .tab.on{color:var(--acc-2);background:rgba(255,255,255,.045)}
+.code .cp{margin-left:auto;margin-bottom:5px;display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#94a1a8;
+  font-size:11.5px;font-weight:560;font-family:inherit;padding:4px 9px;border-radius:7px;cursor:pointer;transition:.13s}
+.code .cp:hover{color:#e6ebee;background:rgba(255,255,255,.1)}
+.code .cp svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.code .lbl{margin-left:auto;margin-bottom:5px;padding:6px 10px;font-size:11.5px;color:#6c7880;font-family:inherit}
+.pane{display:none}.pane.on{display:block}
+.code pre{padding:15px 17px;overflow-x:auto;font-size:13px;line-height:1.72;color:#cfd8dd}
+.tok-k{color:var(--tok-key)}.tok-s{color:var(--tok-str)}.tok-n{color:var(--tok-num)}
+.tok-c{color:var(--tok-com);font-style:italic}.tok-f{color:var(--tok-fn)}
+.tok-g{color:var(--tok-flag)}.tok-p{color:var(--tok-prop)}
+
+/* ============ PLAYGROUND ============ */
+.pg{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--acc-line);
+  border-radius:14px;padding:18px;margin-top:20px;box-shadow:var(--shadow)}
+.pg .h{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.pg .h .t{font-size:14.5px;font-weight:680;color:var(--tx)}
+.pg .h .b{font-size:10.5px;font-weight:700;color:var(--acc);background:var(--acc-soft);
+  border:1px solid var(--acc-line);padding:2px 8px;border-radius:20px;letter-spacing:.03em}
+.pg .d{font-size:13.3px;color:var(--tx-2);margin-bottom:13px}
+.pgrow{display:flex;gap:8px;flex-wrap:wrap}
+.pgrow .m{flex:none;display:grid;place-items:center;padding:0 11px;height:38px;border-radius:9px;
+  background:var(--acc-soft);border:1px solid var(--acc-line);color:var(--acc);font-size:11.5px;font-weight:750;letter-spacing:.04em}
+.pgrow input{flex:1;min-width:200px;height:38px;padding:0 12px;border-radius:9px;background:var(--bg-soft);
+  border:1px solid var(--line);color:var(--tx);font-size:13px;font-family:ui-monospace,monospace;transition:.15s}
+.pgrow input:focus{outline:none;border-color:var(--acc-line);box-shadow:0 0 0 3px var(--acc-soft)}
+.pgrow .btn{height:38px}
+.pgout{margin-top:12px;display:none}
+.pgout.on{display:block}
+.pgmeta{display:flex;align-items:center;gap:9px;margin-bottom:7px;font-size:12px;color:var(--tx-3)}
+.pgmeta .st{font-weight:700;padding:2px 8px;border-radius:6px;font-size:11px;letter-spacing:.03em}
+.pgmeta .st.ok{color:var(--acc);background:var(--acc-soft);border:1px solid var(--acc-line)}
+.pgmeta .st.bad{color:var(--del);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28)}
+.pgout pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+  padding:13px 15px;font-size:12.8px;line-height:1.65;overflow-x:auto;color:#cfd8dd}
+
+/* ============ ENDPOINTS ============ */
+.ep{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px;background:var(--panel)}
+.ep .r{display:flex;align-items:center;gap:13px;padding:12px 15px;border-bottom:1px solid var(--line);transition:.13s}
+.ep .r:last-child{border-bottom:none}
+.ep .r:hover{background:var(--panel-2)}
+.meth{flex:none;width:56px;text-align:center;font-size:10.5px;font-weight:800;letter-spacing:.04em;
+  padding:4px 0;border-radius:6px;color:#fff}
+.meth.get{background:var(--get);color:#04150e}.meth.post{background:var(--post)}
+.meth.put{background:var(--put);color:#241505}.meth.del{background:var(--del)}
+.path{font-family:ui-monospace,monospace;font-size:13.2px;color:var(--tx);flex:none}
+.path b{color:var(--tx-3);font-weight:500}
+.desc{font-size:13px;color:var(--tx-3);margin-left:auto;text-align:right;flex:1;min-width:0}
+.lock{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:650;
+  color:var(--put);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);
+  padding:2px 7px;border-radius:20px}
+.lock svg{width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2.4}
+.nores{display:none;padding:26px;text-align:center;color:var(--tx-3);font-size:13.5px}
+
+/* ============ TABLE ============ */
+.tw{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13.6px}
+th{text-align:left;padding:10px 15px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-3);background:var(--panel-2);border-bottom:1px solid var(--line)}
+td{padding:11px 15px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel-2)}
+td code{font-size:12.6px;color:var(--tx)}
+.sc{font-family:ui-monospace,monospace;font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:6px}
+.sc.s4{color:var(--put);background:rgba(245,158,11,.1)}
+.sc.s5{color:var(--del);background:rgba(239,68,68,.1)}
+
+/* ============ CALLOUT ============ */
+.note{display:flex;gap:12px;background:var(--acc-soft);border:1px solid var(--acc-line);
+  border-radius:12px;padding:14px 16px;margin:18px 0}
+.note .i{flex:none;width:19px;height:19px;color:var(--acc);margin-top:1px}
+.note .i svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9}
+.note p{margin:0;font-size:13.8px;color:var(--tx-2);line-height:1.65}
+.note strong{color:var(--tx)}
+.note.warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.28)}
+.note.warn .i{color:var(--put)}
+
+/* ============ FOOTER ============ */
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--tx-3);font-size:13px}
+footer .l{display:flex;gap:18px;flex-wrap:wrap}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1240px){
+  .shell{grid-template-columns:238px minmax(0,1fr)}
+  aside.toc{display:none}
+  main{padding:0 34px 90px}
+}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  nav.side{position:fixed;top:60px;left:0;width:270px;background:var(--bg);z-index:40;
+    transform:translateX(-102%);transition:transform .25s ease;box-shadow:var(--shadow)}
+  nav.side.open{transform:none}
+  nav.side a.active::before{left:-14px}
+  main{padding:0 20px 80px}
+  .menu-btn{display:grid}
+  .search{max-width:none}
+  .search kbd{display:none}
+  .status span{display:none}
+  .facts{grid-template-columns:repeat(2,1fr)}
+  .roles{grid-template-columns:1fr}
+  .arch{grid-template-columns:1fr;gap:20px;padding:20px}
+  .node:not(:last-child)::after{display:none}
+  .node{flex-direction:row;text-align:left;gap:13px;min-width:0}
+  .node .ic{margin-bottom:0}
+  h1{font-size:34px}
+  h2{font-size:24px}
+  .desc{display:none}
+  .hero{padding:40px 0 30px}
+}
+@media (max-width:560px){
+  .facts{grid-template-columns:1fr}
+  .logo .v{display:none}
+}
+.scrim{display:none;position:fixed;inset:60px 0 0;background:rgba(0,0,0,.55);z-index:39}
+.scrim.on{display:block}
 </style>
 </head>
 <body>
-<div class="shell">
-  <!-- Sidebar -->
-  <aside>
-    <div class="brand"><span class="dot"></span><div>AdminPanel API<small>v1 · Sepolia</small></div></div>
-    <nav class="side">
-      <span class="grp">Guide</span>
-      <a href="#overview" class="nav">Overview</a>
-      <a href="#base-url" class="nav">Base URL &amp; Versioning</a>
-      <a href="#auth" class="nav">Authentication</a>
-      <a href="#integrate" class="nav">Quickstart &amp; Integration</a>
-      <span class="grp">Reference</span>
-      <a href="#endpoints" class="nav">Endpoints</a>
-      <a href="#errors" class="nav">Errors</a>
-      <a href="/docs/">Interactive API (Swagger) ↗</a>
-    </nav>
-    <a class="side-cta" href="/docs/">Try the API live →</a>
-  </aside>
 
-  <main>
-    <div class="topbar">
-      <div class="brand"><span class="dot"></span><div>AdminPanel API</div></div>
-      <a class="pill" href="/docs/">Try it live →</a>
+<header>
+  <div class="hwrap">
+    <button class="ibtn menu-btn" id="menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+    <a class="logo" href="#top">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#04150e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-11"/></svg></span>
+      AdminPanel API <span class="v">v1</span>
+    </a>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg>
+      <input id="q" type="text" placeholder="Search endpoints…" autocomplete="off" spellcheck="false" />
+      <kbd>/</kbd>
     </div>
 
-    <div class="content">
+    <div class="hactions">
+      <div class="status" id="status"><span class="dot"></span><span id="stxt">Checking…</span></div>
+      <button class="ibtn" id="theme" aria-label="Toggle theme">
+        <svg id="ticon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <a class="btn primary" href="/docs/">Try it live
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="shell" id="top">
+  <!-- SIDEBAR -->
+  <nav class="side" id="side">
+    <div class="sgrp">Get started</div>
+    <a href="#overview" class="nv">Overview</a>
+    <a href="#architecture" class="nv">Architecture</a>
+    <a href="#base-url" class="nv">Base URL</a>
+    <a href="#auth" class="nv">Authentication</a>
+    <div class="sgrp">Build</div>
+    <a href="#playground" class="nv">Playground</a>
+    <a href="#quickstart" class="nv">Quickstart</a>
+    <div class="sgrp">Reference</div>
+    <a href="#endpoints" class="nv">Endpoints</a>
+    <a href="#errors" class="nv">Errors &amp; limits</a>
+    <a href="/docs/">Interactive API ↗</a>
+    <a href="/openapi.json">OpenAPI spec ↗</a>
+  </nav>
+
+  <!-- CONTENT -->
+  <main>
+    <div class="mx">
+
+      <div class="hero">
+        <span class="eyebrow"><span class="d"></span>REST API · Ethereum Sepolia</span>
+        <h1>Role-based access control,<br/>as a simple REST API.</h1>
+        <p class="lede">Read roles, users and settings — and run admin actions — over plain HTTP.
+          No wallet, no web3 library, no blockchain knowledge required.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#playground">Run your first call
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
+          <a class="btn ghost" href="/docs/">Open API reference</a>
+        </div>
+
+        <div class="facts">
+          <div class="fact"><div class="k">Base URL</div><div class="v mono host">—</div></div>
+          <div class="fact"><div class="k">Auth</div><div class="v">API key <span style="color:var(--tx-3);font-weight:500">(writes)</span></div></div>
+          <div class="fact"><div class="k">Format</div><div class="v">JSON over HTTPS</div></div>
+          <div class="fact"><div class="k">Network</div><div class="v">Sepolia · 11155111</div></div>
+        </div>
+      </div>
+
       <!-- OVERVIEW -->
       <section id="overview">
-        <span class="pill">REST API · Ethereum Sepolia</span>
-        <h1>AdminPanel API</h1>
-        <p class="lede">A REST interface to a role-based access-control smart contract. Read roles, users
-          and settings — and perform admin actions — over plain HTTP. No wallet or web3 library required.</p>
+        <h2>Overview</h2>
+        <p class="sub">A smart contract on Ethereum decides who is an Owner, Moderator or Regular User.
+          This API puts a conventional web layer in front of it, so any application can integrate with
+          standard HTTP requests instead of talking to the blockchain directly.</p>
+
         <div class="note">
-          <strong>What this is.</strong> Our smart contract decides who is an <b>Owner</b>, <b>Moderator</b>,
-          or <b>Regular&nbsp;User</b> on-chain. This API puts a normal web layer in front of it, so any
-          application can integrate by making standard HTTP requests instead of talking to the blockchain directly.
+          <span class="i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1" stroke-linecap="round"/></svg></span>
+          <p><strong>Permissions are enforced on-chain, not by this API.</strong> The contract's
+            <span class="inline">onlyRole</span> guards are the real gate — a caller without the right role
+            is rejected by the blockchain itself, even if they bypass this service entirely.</p>
         </div>
 
         <h3>Permission tiers</h3>
-        <table>
-          <thead><tr><th>Role</th><th>Can do</th></tr></thead>
-          <tbody>
-            <tr><td><code>OWNER</code></td><td>Everything: register/remove users, promote moderators, edit settings, moderate</td></tr>
-            <tr><td><code>MODERATOR</code></td><td>Deactivate/reactivate users, approve content, + all user reads</td></tr>
-            <tr><td><code>REGULAR_USER</code></td><td>Self-service actions (handled in the dApp, not this API)</td></tr>
-            <tr><td><code>NONE</code></td><td>Read public data only</td></tr>
-          </tbody>
-        </table>
-        <p class="muted">Underlying contract:
-          <a href="https://sepolia.etherscan.io/address/0x18a5883dA6302e13021910235Cb74653b8804505#code" target="_blank" rel="noopener">
-          0x18a5883dA6302e13021910235Cb74653b8804505</a> (verified on Etherscan).</p>
+        <div class="roles">
+          <div class="role" style="--c:#a855f7"><div class="n"><span class="sq"></span>OWNER</div>
+            <p>Full control — register and remove users, promote moderators, edit system settings, plus everything below.</p></div>
+          <div class="role" style="--c:#f59e0b"><div class="n"><span class="sq"></span>MODERATOR</div>
+            <p>Deactivate and reactivate users, approve content, read the user count — plus all user-level reads.</p></div>
+          <div class="role" style="--c:#3b82f6"><div class="n"><span class="sq"></span>REGULAR_USER</div>
+            <p>Self-service actions. Handled in the dApp with the user's own wallet, not through this API.</p></div>
+          <div class="role" style="--c:#6b7280"><div class="n"><span class="sq"></span>NONE</div>
+            <p>No assigned role. Can still read all public data — roles, profiles, settings, status.</p></div>
+        </div>
+      </section>
+
+      <!-- ARCHITECTURE -->
+      <section id="architecture">
+        <h2>Architecture</h2>
+        <p class="sub">A stateless service that translates HTTP into contract calls. There is no database —
+          the contract's on-chain storage is the single source of truth.</p>
+        <div class="arch">
+          <div class="node">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M8 17l-5-5 5-5M16 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="t">Your app</div><div class="s">curl · JS · Python</div>
+          </div>
+          <div class="node">
+            <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01" stroke-linecap="round"/></svg></div>
+            <div class="t">REST API</div><div class="s">Node · Express<br/>on Render</div>
+          </div>
+          <div class="node">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="t">RPC node</div><div class="s">Alchemy<br/>ethers.js v6</div>
+          </div>
+          <div class="node">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" stroke-linejoin="round"/><path d="M12 11l8-4.5M12 11v9M12 11L4 6.5" stroke-linejoin="round"/></svg></div>
+            <div class="t">Smart contract</div><div class="s">AdminPanel.sol<br/>Sepolia</div>
+          </div>
+        </div>
       </section>
 
       <!-- BASE URL -->
       <section id="base-url">
-        <h2>Base URL &amp; Versioning</h2>
-        <p>All resource endpoints are served under <code>/api/v1</code>. Breaking changes ship under a new version prefix.</p>
+        <h2>Base URL</h2>
+        <p class="sub">Every resource endpoint is namespaced under <span class="inline">/api/v1</span>.
+          Breaking changes ship behind a new version prefix, so existing integrations never break.</p>
         <div class="code">
-          <div class="bar"><span class="lang">Base URL</span><button class="copy">Copy</button></div>
-          <pre><span class="host">https://your-host</span>/api/v1</pre>
+          <div class="top"><span class="lbl">Base URL</span></div>
+          <pre><code data-lang="txt" class="host-code">—</code></pre>
         </div>
       </section>
 
       <!-- AUTH -->
       <section id="auth">
         <h2>Authentication</h2>
-        <div class="grid2">
-          <div class="card"><h3 style="margin-top:0">Read endpoints</h3>
-            <p class="muted" style="margin-bottom:0">Open — no authentication. They only call <code>view</code> functions on the contract.</p></div>
-          <div class="card"><h3 style="margin-top:0">Write &amp; admin endpoints</h3>
-            <p class="muted" style="margin-bottom:0">Require an API key sent in the <code>x-api-key</code> header. The server signs the transaction with an operator wallet.</p></div>
+        <p class="sub">Reads are open. Writes and admin reads require an API key.</p>
+        <div class="roles" style="margin-top:16px">
+          <div class="role" style="--c:#10b981"><div class="n"><span class="sq"></span>READS — no auth</div>
+            <p>Role lookups, profiles, settings and status call <span class="inline">view</span> functions.
+              Free, instant, no key needed.</p></div>
+          <div class="role" style="--c:#f59e0b"><div class="n"><span class="sq"></span>WRITES — API key</div>
+            <p>Send <span class="inline">x-api-key</span>. The server signs the transaction with its operator
+              wallet and pays the gas.</p></div>
         </div>
         <div class="code">
-          <div class="bar"><span class="lang">HTTP header</span><button class="copy">Copy</button></div>
-          <pre>x-api-key: YOUR_API_KEY</pre>
+          <div class="top"><span class="lbl">HTTP header</span>
+            <button class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="http">x-api-key: YOUR_API_KEY</code></pre>
         </div>
-        <div class="warn"><strong>Note.</strong> Write access depends on the deployment. A public read-only
-          instance returns <code>503</code> for write endpoints. Treat the API key like a password and always call over HTTPS.</div>
+        <div class="note warn">
+          <span class="i"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3l9-16z" stroke-linejoin="round"/><path d="M12 9v4M12 16h.01" stroke-linecap="round"/></svg></span>
+          <p><strong>Fail-closed by design.</strong> If an instance has no operator wallet configured it runs
+            read-only and every write returns <span class="inline">503</span>. It can never become an
+            unauthenticated relayer for on-chain admin actions.</p>
+        </div>
       </section>
 
-      <!-- INTEGRATE -->
-      <section id="integrate">
-        <h2>Quickstart &amp; Integration</h2>
-        <p>Look up a wallet's role (open) and register a user (needs an API key). Pick your language:</p>
-        <div class="code">
-          <div class="tabs">
-            <button data-tab="curl" class="active">curl</button>
-            <button data-tab="js">JavaScript</button>
-            <button data-tab="py">Python</button>
+      <!-- PLAYGROUND -->
+      <section id="playground">
+        <h2>Playground</h2>
+        <p class="sub">Call the live API right here. This hits the real contract on Sepolia — no key required.</p>
+        <div class="pg">
+          <div class="h"><span class="b">LIVE</span><span class="t">Look up a wallet's role</span></div>
+          <div class="d">Returns <span class="inline">OWNER</span>, <span class="inline">MODERATOR</span>,
+            <span class="inline">REGULAR_USER</span> or <span class="inline">NONE</span> straight from the blockchain.</div>
+          <div class="pgrow">
+            <span class="m">GET</span>
+            <input id="addr" value="0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857" spellcheck="false" />
+            <button class="btn primary" id="run">Send</button>
           </div>
-          <div class="bar"><span class="lang">example</span><button class="copy">Copy</button></div>
-          <div class="tabpane active" data-pane="curl"><pre># Read a wallet's role (no auth)
-curl <span class="host">https://your-host</span>/api/v1/roles/0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857
+          <div class="pgout" id="out">
+            <div class="pgmeta"><span class="st" id="ost">200</span><span id="otime"></span><span id="ourl" class="mono" style="margin-left:auto;font-size:11.5px"></span></div>
+            <pre><code id="obody"></code></pre>
+          </div>
+        </div>
+      </section>
 
-# Register a user (needs API key; server signs the tx)
-curl -X POST <span class="host">https://your-host</span>/api/v1/users \
+      <!-- QUICKSTART -->
+      <section id="quickstart">
+        <h2>Quickstart</h2>
+        <p class="sub">Read a role, then register a user. Pick your language.</p>
+        <div class="code">
+          <div class="top">
+            <button class="tab on" data-t="curl">cURL</button>
+            <button class="tab" data-t="js">JavaScript</button>
+            <button class="tab" data-t="py">Python</button>
+            <button class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button>
+          </div>
+          <div class="pane on" data-p="curl"><pre><code data-lang="bash"># Read a wallet's role — open, no auth
+curl HOSTX/api/v1/roles/0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857
+
+# Register a user — needs an API key; the server signs the transaction
+curl -X POST HOSTX/api/v1/users \
   -H "content-type: application/json" \
   -H "x-api-key: $API_KEY" \
-  -d '{"address":"0x7E2C9...85d7d","username":"alice"}'</pre></div>
-          <div class="tabpane" data-pane="js"><pre>const BASE = "<span class="host">https://your-host</span>";
+  -d '{"address":"0x7E2C9...85d7d","username":"alice"}'</code></pre></div>
+          <div class="pane" data-p="js"><pre><code data-lang="js">const BASE = "HOSTX";
 
-// read
+// read — no auth
 const { role } = await fetch(`${BASE}/api/v1/roles/${address}`).then(r => r.json());
 
-// write
+// write — API key required
 const res = await fetch(`${BASE}/api/v1/users`, {
   method: "POST",
   headers: { "content-type": "application/json", "x-api-key": API_KEY },
   body: JSON.stringify({ address, username: "alice" }),
 });
-const { txHash, explorerUrl } = await res.json();</pre></div>
-          <div class="tabpane" data-pane="py"><pre>import requests
-BASE = "<span class="host">https://your-host</span>"
 
+const { txHash, explorerUrl } = await res.json();</code></pre></div>
+          <div class="pane" data-p="py"><pre><code data-lang="py">import requests
+
+BASE = "HOSTX"
+
+# read — no auth
 role = requests.get(f"{BASE}/api/v1/roles/{address}").json()["role"]
 
+# write — API key required
 res = requests.post(
     f"{BASE}/api/v1/users",
     headers={"x-api-key": API_KEY},
     json={"address": address, "username": "alice"},
 )
-print(res.json()["explorerUrl"])</pre></div>
+print(res.json()["explorerUrl"])</code></pre></div>
         </div>
-        <h3>A successful write returns</h3>
+
+        <h3>What a write returns</h3>
         <div class="code">
-          <div class="bar"><span class="lang">200 OK</span><button class="copy">Copy</button></div>
-          <pre>{
+          <div class="top"><span class="lbl">201 Created</span>
+            <button class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="json">{
   "success": true,
   "txHash": "0xabc…",
   "status": "confirmed",
   "blockNumber": 6543210,
   "explorerUrl": "https://sepolia.etherscan.io/tx/0xabc…",
   "action": "registerUser"
-}</pre>
+}</code></pre>
         </div>
       </section>
 
       <!-- ENDPOINTS -->
       <section id="endpoints">
         <h2>Endpoints</h2>
-        <p class="muted">Full, always-current reference with a “Try it out” console lives at
-          <a href="/docs/">/docs</a>. Endpoints marked <span class="pill">key</span> require <code>x-api-key</code>.</p>
+        <p class="sub">Rows marked with a lock need <span class="inline">x-api-key</span>.
+          Use the search box above to filter, or open the <a href="/docs/">interactive reference</a> to run them.</p>
 
         <h3>Roles</h3>
-        <table><tbody>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/roles/{address}</code></td><td>Wallet's highest role</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/roles/{address}/has/{role}</code></td><td>Check a specific role</td></tr>
-        </tbody></table>
+        <div class="ep" data-grp>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/roles/<b>{address}</b></span><span class="desc">A wallet's highest role</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/roles/<b>{address}</b>/has/<b>{role}</b></span><span class="desc">Check one specific role</span></div>
+        </div>
 
         <h3>Users</h3>
-        <table><tbody>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users</code> <span class="pill">key</span></td><td>List all users</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/count</code> <span class="pill">key</span></td><td>Total registered users</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/{address}</code></td><td>A user's public profile</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/users/{address}/active</code></td><td>Active status</td></tr>
-          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users</code> <span class="pill">key</span></td><td>Register a user (grants REGULAR_USER)</td></tr>
-          <tr><td><span class="m delete">DEL</span></td><td><code>/api/v1/users/{address}</code> <span class="pill">key</span></td><td>Remove a user</td></tr>
-          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users/{address}/deactivate</code> <span class="pill">key</span></td><td>Deactivate a user</td></tr>
-          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/users/{address}/reactivate</code> <span class="pill">key</span></td><td>Reactivate a user</td></tr>
-        </tbody></table>
+        <div class="ep" data-grp>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/users</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">List every user</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/users/count</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Total registered users</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/users/<b>{address}</b></span><span class="desc">A user's public profile</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/users/<b>{address}</b>/active</span><span class="desc">Active status flag</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/users</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Register a user → REGULAR_USER</span></div>
+          <div class="r" data-ep><span class="meth del">DEL</span><span class="path">/api/v1/users/<b>{address}</b></span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Remove a user</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/users/<b>{address}</b>/deactivate</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Suspend an account</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/users/<b>{address}</b>/reactivate</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Restore an account</span></div>
+        </div>
 
         <h3>Moderators · Settings · Content</h3>
-        <table><tbody>
-          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/moderators</code> <span class="pill">key</span></td><td>Promote an address to moderator</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/settings/{key}</code></td><td>Read a system setting</td></tr>
-          <tr><td><span class="m put">PUT</span></td><td><code>/api/v1/settings/{key}</code> <span class="pill">key</span></td><td>Create/update a setting</td></tr>
-          <tr><td><span class="m post">POST</span></td><td><code>/api/v1/content/approve</code> <span class="pill">key</span></td><td>Approve user content</td></tr>
-        </tbody></table>
+        <div class="ep" data-grp>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/moderators</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Promote to moderator</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/settings/<b>{key}</b></span><span class="desc">Read a system setting</span></div>
+          <div class="r" data-ep><span class="meth put">PUT</span><span class="path">/api/v1/settings/<b>{key}</b></span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Create or update a setting</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/content/approve</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Approve user content</span></div>
+        </div>
 
         <h3>System</h3>
-        <table><tbody>
-          <tr><td><span class="m get">GET</span></td><td><code>/health</code></td><td>Liveness &amp; chain connectivity</td></tr>
-          <tr><td><span class="m get">GET</span></td><td><code>/api/v1/tx/{hash}</code></td><td>Transaction confirmation status</td></tr>
-        </tbody></table>
+        <div class="ep" data-grp>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/health</span><span class="desc">Liveness &amp; chain connectivity</span></div>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/tx/<b>{hash}</b></span><span class="desc">Transaction confirmation status</span></div>
+        </div>
+        <div class="nores" id="nores">No endpoints match that search.</div>
 
         <h3>Request bodies</h3>
-        <table>
+        <div class="tw"><table>
           <thead><tr><th>Endpoint</th><th>JSON body</th></tr></thead>
           <tbody>
-            <tr><td><code>POST /users</code>, <code>POST /moderators</code></td><td><code>{ "address": "0x…", "username": "string" }</code></td></tr>
+            <tr><td><code>POST /users</code> · <code>POST /moderators</code></td><td><code>{ "address": "0x…", "username": "string" }</code></td></tr>
             <tr><td><code>PUT /settings/{key}</code></td><td><code>{ "value": "string" }</code></td></tr>
             <tr><td><code>POST /content/approve</code></td><td><code>{ "address": "0x…", "contentId": "string" }</code></td></tr>
           </tbody>
-        </table>
+        </table></div>
       </section>
 
       <!-- ERRORS -->
       <section id="errors">
-        <h2>Errors</h2>
-        <p>Every error is JSON with a machine-readable <code>code</code> and a human message:</p>
+        <h2>Errors &amp; limits</h2>
+        <p class="sub">Every failure returns the same JSON envelope with a machine-readable code.
+          On-chain reverts are translated into proper HTTP statuses — raw hex is never returned.</p>
         <div class="code">
-          <div class="bar"><span class="lang">error shape</span><button class="copy">Copy</button></div>
-          <pre>{ "error": { "code": "bad_request", "message": "…", "details": { } } }</pre>
+          <div class="top"><span class="lbl">Error envelope</span>
+            <button class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="json">{
+  "error": {
+    "code": "bad_request",
+    "message": "'address' must be a valid Ethereum address.",
+    "details": { "field": "address" }
+  }
+}</code></pre>
         </div>
-        <table>
-          <thead><tr><th>Status</th><th>code</th><th>Meaning</th></tr></thead>
+        <div class="tw"><table>
+          <thead><tr><th style="width:70px">Status</th><th style="width:180px">Code</th><th>When</th></tr></thead>
           <tbody>
-            <tr><td>400</td><td><code>bad_request</code></td><td>Invalid input (bad address, missing field)</td></tr>
-            <tr><td>401</td><td><code>unauthorized</code></td><td>Missing or invalid API key</td></tr>
-            <tr><td>404</td><td><code>not_found</code></td><td>Unknown route or unregistered user</td></tr>
-            <tr><td>409</td><td><code>conflict</code></td><td>On-chain revert (e.g. “User does not exist”)</td></tr>
-            <tr><td>429</td><td><code>rate_limited</code></td><td>Too many requests (120/min per IP)</td></tr>
-            <tr><td>502</td><td><code>upstream_error</code></td><td>Blockchain RPC unreachable</td></tr>
-            <tr><td>503</td><td><code>service_unavailable</code></td><td>Writes disabled, or operator out of gas</td></tr>
+            <tr><td><span class="sc s4">400</span></td><td><code>bad_request</code></td><td>Invalid address, missing field, malformed JSON</td></tr>
+            <tr><td><span class="sc s4">401</span></td><td><code>unauthorized</code></td><td>Missing or wrong API key</td></tr>
+            <tr><td><span class="sc s4">404</span></td><td><code>not_found</code></td><td>Unknown route, or the address isn't registered</td></tr>
+            <tr><td><span class="sc s4">409</span></td><td><code>conflict</code></td><td>Contract reverted — e.g. “User does not exist”</td></tr>
+            <tr><td><span class="sc s4">429</span></td><td><code>rate_limited</code></td><td>Over 120 requests per minute per IP</td></tr>
+            <tr><td><span class="sc s5">502</span></td><td><code>upstream_error</code></td><td>Blockchain RPC unreachable</td></tr>
+            <tr><td><span class="sc s5">503</span></td><td><code>service_unavailable</code></td><td>Writes disabled, or operator out of gas</td></tr>
           </tbody>
-        </table>
+        </table></div>
+        <div class="note">
+          <span class="i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span>
+          <p><strong>Rate limit:</strong> 120 requests per minute per IP. Writes wait for one block
+            confirmation (~12s on Sepolia) before responding, so set a client timeout of at least 30 seconds.</p>
+        </div>
       </section>
 
-      <div class="footer">
-        AdminPanel API · Role-based access control on Ethereum Sepolia ·
-        <a href="/docs/">Interactive reference</a> ·
-        <a href="/openapi.json">OpenAPI spec</a> ·
-        <a href="/health">Status</a>
-      </div>
+      <footer>
+        <span>AdminPanel API · Role-based access control on Ethereum Sepolia</span>
+        <span class="l">
+          <a href="/docs/">Reference</a>
+          <a href="/openapi.json">OpenAPI</a>
+          <a href="/health">Status</a>
+          <a href="https://sepolia.etherscan.io/address/0x18a5883dA6302e13021910235Cb74653b8804505#code" target="_blank" rel="noopener">Contract ↗</a>
+        </span>
+      </footer>
     </div>
   </main>
+
+  <!-- TOC -->
+  <aside class="toc">
+    <h6>On this page</h6>
+    <a href="#overview" class="tc">Overview</a>
+    <a href="#architecture" class="tc">Architecture</a>
+    <a href="#base-url" class="tc">Base URL</a>
+    <a href="#auth" class="tc">Authentication</a>
+    <a href="#playground" class="tc">Playground</a>
+    <a href="#quickstart" class="tc">Quickstart</a>
+    <a href="#endpoints" class="tc">Endpoints</a>
+    <a href="#errors" class="tc">Errors &amp; limits</a>
+  </aside>
 </div>
 
 <script>
-  // Show the real host in every code example.
-  document.querySelectorAll(".host").forEach(function (el) { el.textContent = location.origin; });
+(function () {
+  var ORIGIN = location.origin;
 
-  // Copy buttons.
-  document.querySelectorAll(".copy").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var block = btn.closest(".code");
-      var pane = block.querySelector(".tabpane.active pre") || block.querySelector("pre");
-      navigator.clipboard.writeText(pane.innerText).then(function () {
-        var t = btn.textContent; btn.textContent = "Copied ✓";
-        setTimeout(function () { btn.textContent = t; }, 1200);
+  /* ---------- inject real host ---------- */
+  document.querySelectorAll(".host").forEach(function (e) { e.textContent = ORIGIN; });
+  document.querySelectorAll(".host-code").forEach(function (e) { e.textContent = ORIGIN + "/api/v1"; });
+
+  /* ---------- syntax highlighting ---------- */
+  var RULES = {
+    bash: [[/#[^\n]*/g,"c"],[/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,"s"],[/\B--?[A-Za-z][\w-]*/g,"g"],[/\$\{?\w+\}?/g,"n"],[/\b(curl|export|echo|print)\b/g,"k"]],
+    js:   [[/\/\/[^\n]*/g,"c"],[/`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,"s"],[/\b(const|let|var|await|async|function|return|new|if|else)\b/g,"k"],[/\b(fetch|json|then|stringify|post)\b/g,"f"],[/\b\d+\b/g,"n"]],
+    py:   [[/#[^\n]*/g,"c"],[/f?"(?:[^"\\]|\\.)*"|f?'(?:[^'\\]|\\.)*'/g,"s"],[/\b(import|from|def|return|print|None|True|False)\b/g,"k"],[/\b(requests|get|post|json)\b/g,"f"],[/\b\d+\b/g,"n"]],
+    json: [[/"(?:[^"\\]|\\.)*"(?=\s*:)/g,"p"],[/"(?:[^"\\]|\\.)*"/g,"s"],[/\b(true|false|null)\b/g,"k"],[/\b\d+\b/g,"n"]],
+    http: [[/^[\w-]+(?=:)/gm,"p"],[/:\s*.+$/gm,"s"]],
+    txt:  []
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function hl(el) {
+    var lang = el.dataset.lang || "txt", rules = RULES[lang] || [];
+    var src = el.textContent, out = esc(src);
+    if (!rules.length) { el.innerHTML = out; return; }
+    var parts = rules.map(function (r) { return "(" + r[0].source + ")"; });
+    var flags = "g" + (rules.some(function(r){return r[0].flags.indexOf("m")>-1;}) ? "m" : "");
+    var re = new RegExp(parts.join("|"), flags);
+    el.innerHTML = out.replace(re, function () {
+      var a = arguments;
+      for (var i = 1; i <= rules.length; i++) {
+        if (a[i] !== undefined) return '<span class="tok-' + rules[i-1][1] + '">' + a[i] + "</span>";
+      }
+      return a[0];
+    });
+  }
+  document.querySelectorAll("code[data-lang]").forEach(function (el) {
+    el.textContent = el.textContent.replace(/HOSTX/g, ORIGIN);
+    hl(el);
+  });
+
+  /* ---------- copy ---------- */
+  document.querySelectorAll(".cp").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var box = b.closest(".code");
+      var pre = box.querySelector(".pane.on pre") || box.querySelector("pre");
+      navigator.clipboard.writeText(pre.innerText).then(function () {
+        var old = b.innerHTML; b.textContent = "Copied";
+        setTimeout(function () { b.innerHTML = old; }, 1300);
       });
     });
   });
 
-  // Code tabs.
-  document.querySelectorAll(".tabs").forEach(function (tabs) {
-    var block = tabs.closest(".code");
-    tabs.querySelectorAll("button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        tabs.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
-        block.querySelectorAll(".tabpane").forEach(function (p) { p.classList.remove("active"); });
-        b.classList.add("active");
-        block.querySelector('[data-pane="' + b.dataset.tab + '"]').classList.add("active");
+  /* ---------- tabs ---------- */
+  document.querySelectorAll(".code .top").forEach(function (top) {
+    var box = top.closest(".code");
+    top.querySelectorAll(".tab").forEach(function (t) {
+      t.addEventListener("click", function () {
+        top.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("on"); });
+        box.querySelectorAll(".pane").forEach(function (p) { p.classList.remove("on"); });
+        t.classList.add("on");
+        box.querySelector('[data-p="' + t.dataset.t + '"]').classList.add("on");
       });
     });
   });
 
-  // Highlight the active section in the sidebar while scrolling.
-  var links = Array.prototype.slice.call(document.querySelectorAll("nav.side a.nav"));
-  var map = {};
-  links.forEach(function (l) { var id = l.getAttribute("href").slice(1); if (id) map[id] = l; });
-  var obs = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (e.isIntersecting) {
-        links.forEach(function (l) { l.classList.remove("active"); });
-        if (map[e.target.id]) map[e.target.id].classList.add("active");
+  /* ---------- theme ---------- */
+  var root = document.documentElement, ticon = document.getElementById("ticon");
+  var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke-linecap="round" stroke-linejoin="round"/>';
+  function setTheme(t) { root.dataset.theme = t; ticon.innerHTML = t === "dark" ? MOON : SUN; try { localStorage.setItem("t", t); } catch (e) {} }
+  var saved; try { saved = localStorage.getItem("t"); } catch (e) {}
+  setTheme(saved || "dark");
+  document.getElementById("theme").addEventListener("click", function () {
+    setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+  });
+
+  /* ---------- live status ---------- */
+  var sEl = document.getElementById("status"), sTx = document.getElementById("stxt");
+  fetch("/health").then(function (r) { return r.json(); }).then(function (h) {
+    if (h.status === "ok") {
+      sEl.classList.add("ok");
+      sTx.innerHTML = 'Operational <span style="color:var(--tx-3)">· block ' + h.network.blockNumber.toLocaleString() + "</span>";
+    } else { sEl.classList.add("err"); sTx.textContent = "Degraded"; }
+  }).catch(function () { sEl.classList.add("err"); sTx.textContent = "Offline"; });
+
+  /* ---------- playground ---------- */
+  var run = document.getElementById("run"), addr = document.getElementById("addr");
+  var out = document.getElementById("out"), ost = document.getElementById("ost");
+  var obody = document.getElementById("obody"), otime = document.getElementById("otime"), ourl = document.getElementById("ourl");
+  function send() {
+    var a = addr.value.trim();
+    var url = "/api/v1/roles/" + encodeURIComponent(a);
+    run.textContent = "Sending…"; run.disabled = true;
+    var t0 = performance.now();
+    fetch(url).then(function (r) {
+      return r.json().then(function (j) { return { s: r.status, j: j }; });
+    }).then(function (res) {
+      var ms = Math.round(performance.now() - t0);
+      out.classList.add("on");
+      ost.textContent = res.s;
+      ost.className = "st " + (res.s < 300 ? "ok" : "bad");
+      otime.textContent = ms + " ms";
+      ourl.textContent = "GET " + url;
+      obody.dataset.lang = "json";
+      obody.textContent = JSON.stringify(res.j, null, 2);
+      hl(obody);
+    }).catch(function () {
+      out.classList.add("on"); ost.textContent = "ERR"; ost.className = "st bad";
+      obody.textContent = "Request failed.";
+    }).finally(function () { run.textContent = "Send"; run.disabled = false; });
+  }
+  run.addEventListener("click", send);
+  addr.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
+
+  /* ---------- search ---------- */
+  var q = document.getElementById("q"), nores = document.getElementById("nores");
+  q.addEventListener("input", function () {
+    var v = q.value.trim().toLowerCase();
+    var shown = 0;
+    document.querySelectorAll("[data-ep]").forEach(function (r) {
+      var hit = !v || r.textContent.toLowerCase().indexOf(v) > -1;
+      r.style.display = hit ? "" : "none";
+      if (hit) shown++;
+    });
+    document.querySelectorAll("[data-grp]").forEach(function (g) {
+      var any = Array.prototype.some.call(g.querySelectorAll("[data-ep]"), function (r) { return r.style.display !== "none"; });
+      g.style.display = any ? "" : "none";
+      if (g.previousElementSibling && g.previousElementSibling.tagName === "H3") {
+        g.previousElementSibling.style.display = any ? "" : "none";
       }
     });
-  }, { rootMargin: "-40% 0px -55% 0px" });
+    nores.style.display = shown ? "none" : "block";
+    if (v) document.getElementById("endpoints").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+    if (e.key === "Escape" && document.activeElement === q) { q.value = ""; q.dispatchEvent(new Event("input")); q.blur(); }
+  });
+
+  /* ---------- mobile nav ---------- */
+  var side = document.getElementById("side"), scrim = document.getElementById("scrim");
+  document.getElementById("menu").addEventListener("click", function () {
+    side.classList.toggle("open"); scrim.classList.toggle("on");
+  });
+  scrim.addEventListener("click", function () { side.classList.remove("open"); scrim.classList.remove("on"); });
+  side.querySelectorAll("a").forEach(function (a) {
+    a.addEventListener("click", function () { side.classList.remove("open"); scrim.classList.remove("on"); });
+  });
+
+  /* ---------- scroll spy ---------- */
+  var navs = {}, tocs = {};
+  document.querySelectorAll("nav.side a.nv").forEach(function (a) { navs[a.getAttribute("href").slice(1)] = a; });
+  document.querySelectorAll("aside.toc a.tc").forEach(function (a) { tocs[a.getAttribute("href").slice(1)] = a; });
+  var obs = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var id = e.target.id;
+      Object.keys(navs).forEach(function (k) { navs[k].classList.toggle("active", k === id); });
+      Object.keys(tocs).forEach(function (k) { tocs[k].classList.toggle("active", k === id); });
+    });
+  }, { rootMargin: "-25% 0px -65% 0px" });
   document.querySelectorAll("main section[id]").forEach(function (s) { obs.observe(s); });
+})();
 </script>
 </body>
 </html>
