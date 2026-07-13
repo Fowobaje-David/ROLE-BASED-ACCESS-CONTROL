@@ -12,6 +12,7 @@ class ApiError extends Error {
 
 const badRequest = (msg, details) => new ApiError(400, "bad_request", msg, details);
 const unauthorized = (msg) => new ApiError(401, "unauthorized", msg);
+const forbidden = (msg, details) => new ApiError(403, "forbidden", msg, details);
 const notFound = (msg) => new ApiError(404, "not_found", msg || "Resource not found.");
 const conflict = (msg) => new ApiError(409, "conflict", msg);
 const serviceUnavailable = (msg) => new ApiError(503, "service_unavailable", msg);
@@ -57,6 +58,7 @@ module.exports = {
   ApiError,
   badRequest,
   unauthorized,
+  forbidden,
   notFound,
   conflict,
   serviceUnavailable,

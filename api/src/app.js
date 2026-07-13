@@ -17,6 +17,8 @@ const usersRoutes = require("./routes/users");
 const moderatorsRoutes = require("./routes/moderators");
 const settingsRoutes = require("./routes/settings");
 const contentRoutes = require("./routes/content");
+const keysRoutes = require("./routes/keys");
+const assistantRoutes = require("./routes/assistant");
 
 function buildApp() {
   const app = express();
@@ -67,6 +69,8 @@ function buildApp() {
   app.use("/api/v1/moderators", moderatorsRoutes);
   app.use("/api/v1/settings", settingsRoutes);
   app.use("/api/v1/content", contentRoutes);
+  app.use("/api/v1/keys", keysRoutes);
+  app.use("/api/v1/assistant", assistantRoutes);
 
   // 404
   app.use((req, res) => {

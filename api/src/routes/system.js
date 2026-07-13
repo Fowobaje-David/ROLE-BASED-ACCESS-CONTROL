@@ -26,6 +26,11 @@ router.get(
       contract: config.CONTRACT_ADDRESS,
       writeEnabled,
       operator: writeEnabled ? operatorAddress : null,
+      features: {
+        signedKeys: Boolean(config.API_KEY_SECRET),
+        keyIssuance: config.canIssueKeys,
+        assistant: config.assistantEnabled,
+      },
     });
   })
 );

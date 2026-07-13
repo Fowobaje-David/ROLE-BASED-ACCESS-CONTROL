@@ -64,8 +64,14 @@ module.exports = {
     version: config.VERSION,
     description:
       "REST API over the AdminPanel role-based access-control smart contract on " +
-      "Ethereum Sepolia. Read endpoints are public. Write endpoints are signed " +
-      "server-side by an operator wallet and require an API key (`x-api-key`).\n\n" +
+      "Ethereum Sepolia. Read endpoints are public. Protected endpoints require an " +
+      "API key in the `x-api-key` header.\n\n" +
+      "**Key scopes** — `read` unlocks admin reads (list users, user count; no gas). " +
+      "`write` additionally unlocks on-chain writes, which are signed server-side by an " +
+      "operator wallet and spend gas. A `read` key on a write endpoint returns `403`.\n\n" +
+      "Keys are stateless HMAC-signed tokens carrying a name, scope and expiry — " +
+      "nothing is stored server-side. Get one from the API owner, then check it with " +
+      "`GET /api/v1/keys/me`.\n\n" +
       "Contract: `" + config.CONTRACT_ADDRESS + "`",
     contact: { name: "AdminPanel API" },
     license: { name: "MIT" },
@@ -78,6 +84,8 @@ module.exports = {
     { name: "Moderators", description: "Moderator promotion." },
     { name: "Settings", description: "System settings." },
     { name: "Content", description: "Content moderation." },
+    { name: "API keys", description: "Issue and inspect API keys (stateless, HMAC-signed, scoped)." },
+    { name: "Assistant", description: "AI documentation assistant." },
   ],
   components: {
     securitySchemes: {
@@ -237,6 +245,91 @@ module.exports = {
         parameters: [{ name: "key", in: "path", required: true, schema: { type: "string" } }],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { value: { type: "string" } } } } } },
         responses: writeResponses,
+      },
+    },
+    "/api/v1/keys": {
+      post: {
+        tags: ["API keys"],
+        summary: "Mint a new API key (admin only)",
+        description:
+          "Issues a stateless HMAC-signed key. Requires the `x-admin-secret` header — not an API key. " +
+          "The key is returned once and is never stored server-side.",
+        parameters: [
+          { name: "x-admin-secret", in: "header", required: true, schema: { type: "string" } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name"],
+                properties: {
+                  name: { type: "string", example: "Supervisor" },
+                  scope: { type: "string", enum: ["read", "write"], default: "read" },
+                  days: { type: "integer", default: 30, description: "0 = never expires" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Key issued (shown once)" },
+          401: { description: "Invalid admin secret" },
+          503: { description: "Key issuance not enabled" },
+        },
+      },
+    },
+    "/api/v1/keys/me": {
+      get: {
+        tags: ["API keys"],
+        summary: "Inspect the API key you are sending",
+        description: "Returns the key's name, scope and expiry. Useful to confirm what a key can do.",
+        security: [{ ApiKeyAuth: [] }],
+        responses: {
+          200: { description: "Key details" },
+          401: { description: "Missing, invalid, revoked or expired key" },
+        },
+      },
+    },
+    "/api/v1/assistant": {
+      post: {
+        tags: ["Assistant"],
+        summary: "Ask the documentation assistant a question",
+        description:
+          "AI assistant grounded in this API's documentation. No API key required. " +
+          "Rate limited to 12 requests/minute per IP.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["question"],
+                properties: {
+                  question: { type: "string", example: "How do I check a wallet's role?" },
+                  history: {
+                    type: "array",
+                    description: "Optional prior turns for follow-up questions.",
+                    items: {
+                      type: "object",
+                      properties: {
+                        role: { type: "string", enum: ["user", "model"] },
+                        text: { type: "string" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Answer" },
+          400: { description: "Missing or oversized question" },
+          429: { description: "Rate limited" },
+          503: { description: "Assistant not enabled on this instance" },
+        },
       },
     },
     "/api/v1/content/approve": {

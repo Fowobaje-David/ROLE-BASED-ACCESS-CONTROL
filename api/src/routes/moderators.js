@@ -1,7 +1,7 @@
 "use strict";
 const express = require("express");
 const asyncHandler = require("../middleware/asyncHandler");
-const requireApiKey = require("../middleware/auth");
+const { requireScope } = require("../middleware/auth");
 const { requireAddress, requireString } = require("../middleware/validate");
 const { writeContract } = require("../contract");
 const { serviceUnavailable } = require("../middleware/errors");
@@ -12,7 +12,7 @@ const router = express.Router();
 // POST /api/v1/moderators  { address, username }  -> promoteModerator (grants MODERATOR).
 router.post(
   "/",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     if (!writeContract) throw serviceUnavailable("Operator wallet not configured.");
     const address = requireAddress(req.body.address);

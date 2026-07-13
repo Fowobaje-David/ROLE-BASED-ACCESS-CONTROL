@@ -293,6 +293,67 @@ footer .l{display:flex;gap:18px;flex-wrap:wrap}
 }
 .scrim{display:none;position:fixed;inset:60px 0 0;background:rgba(0,0,0,.55);z-index:39}
 .scrim.on{display:block}
+
+/* ============ AI ASSISTANT ============ */
+.ai-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:9px;
+  font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;
+  border:1px solid var(--acc-line);background:var(--acc-soft);color:var(--acc)}
+.ai-btn:hover{background:color-mix(in srgb,var(--acc) 18%,transparent)}
+.ai-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9}
+.ai-scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);z-index:80;
+  opacity:0;pointer-events:none;transition:.2s}
+.ai-scrim.on{opacity:1;pointer-events:auto}
+.ai{position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;z-index:81;display:flex;flex-direction:column;
+  background:var(--bg);border-left:1px solid var(--line);box-shadow:-20px 0 60px -20px rgba(0,0,0,.6);
+  transform:translateX(102%);transition:transform .26s cubic-bezier(.4,0,.2,1)}
+.ai.on{transform:none}
+.ai-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex:none}
+.ai-h .ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--acc-2),var(--acc));color:#04150e}
+.ai-h .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.ai-h .t{font-weight:680;font-size:14.5px}
+.ai-h .s{font-size:11.5px;color:var(--tx-3)}
+.ai-h .x{margin-left:auto;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--tx-2);cursor:pointer}
+.ai-h .x:hover{color:var(--tx)}
+.ai-h .x svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.ai-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.ai-empty{text-align:center;padding:26px 10px;color:var(--tx-3)}
+.ai-empty .big{font-size:15px;color:var(--tx-2);margin-bottom:6px;font-weight:600}
+.chips{display:flex;flex-direction:column;gap:7px;margin-top:16px}
+.chip{text-align:left;font-size:13px;color:var(--tx-2);background:var(--panel);border:1px solid var(--line);
+  padding:9px 12px;border-radius:10px;cursor:pointer;transition:.14s;font-family:inherit}
+.chip:hover{border-color:var(--acc-line);color:var(--tx);background:var(--panel-2)}
+.msg{max-width:92%;font-size:14px;line-height:1.68}
+.msg.u{align-self:flex-end;background:var(--acc-soft);border:1px solid var(--acc-line);
+  color:var(--tx);padding:9px 13px;border-radius:13px 13px 4px 13px}
+.msg.a{align-self:flex-start;color:var(--tx-2)}
+.msg.a p{margin:0 0 9px}
+.msg.a p:last-child{margin-bottom:0}
+.msg.a ul{margin:8px 0}
+.msg.a li{font-size:13.8px}
+.msg.a code{font-size:12.6px;background:var(--panel-2);border:1px solid var(--line);
+  padding:1.5px 5px;border-radius:5px;color:var(--tx)}
+.msg.a pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;overflow-x:auto;font-size:12.5px;line-height:1.6;color:#cfd8dd;margin:9px 0}
+.msg.a pre code{background:none;border:none;padding:0;color:inherit}
+.msg.a strong{color:var(--tx)}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--tx-3);margin-right:3px;
+  animation:bl 1.3s infinite}
+.dots span:nth-child(2){animation-delay:.18s}.dots span:nth-child(3){animation-delay:.36s}
+@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.ai-f{flex:none;padding:12px 14px;border-top:1px solid var(--line);background:var(--bg-soft)}
+.ai-in{display:flex;gap:8px;align-items:flex-end}
+.ai-in textarea{flex:1;resize:none;min-height:40px;max-height:120px;padding:10px 12px;border-radius:10px;
+  background:var(--panel);border:1px solid var(--line);color:var(--tx);font-size:13.8px;
+  font-family:inherit;line-height:1.5}
+.ai-in textarea:focus{outline:none;border-color:var(--acc-line);box-shadow:0 0 0 3px var(--acc-soft)}
+.ai-in button{flex:none;width:40px;height:40px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,var(--acc-2),var(--acc));color:#04150e;display:grid;place-items:center}
+.ai-in button:disabled{opacity:.45;cursor:not-allowed}
+.ai-in button svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2}
+.ai-note{font-size:11px;color:var(--tx-3);margin-top:7px;text-align:center}
+@media (max-width:900px){.ai{width:100%}.ai-btn span{display:none}.ai-btn{padding:0 9px}}
 </style>
 </head>
 <body>
@@ -314,8 +375,12 @@ footer .l{display:flex;gap:18px;flex-wrap:wrap}
     </div>
 
     <div class="hactions">
+      <button type="button" class="ai-btn" id="aiOpen">
+        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" stroke-linejoin="round"/></svg>
+        <span>Ask AI</span>
+      </button>
       <div class="status" id="status"><span class="dot"></span><span id="stxt">Checking…</span></div>
-      <button class="ibtn" id="theme" aria-label="Toggle theme">
+      <button type="button" class="ibtn" id="theme" aria-label="Toggle theme">
         <svg id="ticon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <a class="btn primary" href="/docs/">Try it live
@@ -338,6 +403,7 @@ footer .l{display:flex;gap:18px;flex-wrap:wrap}
     <div class="sgrp">Build</div>
     <a href="#playground" class="nv">Playground</a>
     <a href="#quickstart" class="nv">Quickstart</a>
+    <a href="#keys" class="nv">API keys</a>
     <div class="sgrp">Reference</div>
     <a href="#endpoints" class="nv">Endpoints</a>
     <a href="#errors" class="nv">Errors &amp; limits</a>
@@ -466,8 +532,9 @@ footer .l{display:flex;gap:18px;flex-wrap:wrap}
             <span class="inline">REGULAR_USER</span> or <span class="inline">NONE</span> straight from the blockchain.</div>
           <div class="pgrow">
             <span class="m">GET</span>
-            <input id="addr" value="0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857" spellcheck="false" />
-            <button class="btn primary" id="run">Send</button>
+            <input id="addr" aria-label="Wallet address to look up" placeholder="0x…"
+                   value="0xd7C1D2D96cc9cD8D9e90876f77c1DBeC8A33B857" spellcheck="false" />
+            <button type="button" class="btn primary" id="run">Send</button>
           </div>
           <div class="pgout" id="out">
             <div class="pgmeta"><span class="st" id="ost">200</span><span id="otime"></span><span id="ourl" class="mono" style="margin-left:auto;font-size:11.5px"></span></div>
@@ -539,6 +606,68 @@ print(res.json()["explorerUrl"])</code></pre></div>
         </div>
       </section>
 
+      <!-- API KEYS -->
+      <section id="keys">
+        <h2>API keys</h2>
+        <p class="sub">Protected endpoints need an API key. Keys are stateless and cryptographically
+          signed — nothing is stored in a database, and a forged key cannot be verified.</p>
+
+        <div class="code">
+          <div class="top"><span class="lbl">Key format</span></div>
+          <pre><code data-lang="txt">ap_live_&lt;payload&gt;.&lt;signature&gt;
+         │         └── HMAC-SHA256, verified by the server
+         └── who it's for · scope · issued at · expiry</code></pre>
+        </div>
+
+        <h3>Scopes</h3>
+        <div class="roles" style="margin-top:14px">
+          <div class="role" style="--c:#10b981"><div class="n"><span class="sq"></span>read</div>
+            <p>Admin reads — list all users, user count. Costs no gas and cannot change on-chain state.
+              Safe to hand out freely.</p></div>
+          <div class="role" style="--c:#f59e0b"><div class="n"><span class="sq"></span>write</div>
+            <p>Everything above, plus on-chain writes (register, promote, deactivate, settings).
+              Each call spends the operator wallet's gas — issued only on request.</p></div>
+        </div>
+
+        <h3>Getting a key</h3>
+        <p>Keys are minted by the API owner. Ask for one, and you'll receive a key scoped to what you need
+          with an expiry date. The owner issues it from the command line:</p>
+        <div class="code">
+          <div class="top"><span class="lbl">owner · terminal</span>
+            <button type="button" class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="bash">npm run key:issue -- --name "Supervisor" --scope read --days 30</code></pre>
+        </div>
+        <p>…or over HTTP, using the admin secret:</p>
+        <div class="code">
+          <div class="top"><span class="lbl">POST /api/v1/keys</span>
+            <button type="button" class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="bash">curl -X POST HOSTX/api/v1/keys \
+  -H "content-type: application/json" \
+  -H "x-admin-secret: $ADMIN_SECRET" \
+  -d '{"name":"Supervisor","scope":"read","days":30}'</code></pre>
+        </div>
+
+        <h3>Using a key</h3>
+        <p>Send it as <span class="inline">x-api-key</span> (an <span class="inline">Authorization: Bearer</span>
+          header also works):</p>
+        <div class="code">
+          <div class="top"><span class="lbl">example</span>
+            <button type="button" class="cp"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copy</button></div>
+          <pre><code data-lang="bash"># check what your key can do
+curl HOSTX/api/v1/keys/me -H "x-api-key: ap_live_..."
+
+# use it on a protected endpoint
+curl HOSTX/api/v1/users -H "x-api-key: ap_live_..."</code></pre>
+        </div>
+
+        <div class="note">
+          <span class="i"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>
+          <p><strong>Keys expire, and can be revoked.</strong> Each key carries its own expiry, and its id can be
+            added to a revocation list — so a leaked key stops working without redeploying anything.
+            A key is shown <strong>once</strong> at creation; the server never stores it.</p>
+        </div>
+      </section>
+
       <!-- ENDPOINTS -->
       <section id="endpoints">
         <h2>Endpoints</h2>
@@ -569,6 +698,13 @@ print(res.json()["explorerUrl"])</code></pre></div>
           <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/settings/<b>{key}</b></span><span class="desc">Read a system setting</span></div>
           <div class="r" data-ep><span class="meth put">PUT</span><span class="path">/api/v1/settings/<b>{key}</b></span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Create or update a setting</span></div>
           <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/content/approve</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Approve user content</span></div>
+        </div>
+
+        <h3>API keys &amp; assistant</h3>
+        <div class="ep" data-grp>
+          <div class="r" data-ep><span class="meth get">GET</span><span class="path">/api/v1/keys/me</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>key</span><span class="desc">Inspect your key's scope &amp; expiry</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/keys</span><span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>admin</span><span class="desc">Mint a new API key</span></div>
+          <div class="r" data-ep><span class="meth post">POST</span><span class="path">/api/v1/assistant</span><span class="desc">Ask the docs assistant a question</span></div>
         </div>
 
         <h3>System</h3>
@@ -645,9 +781,45 @@ print(res.json()["explorerUrl"])</code></pre></div>
     <a href="#auth" class="tc">Authentication</a>
     <a href="#playground" class="tc">Playground</a>
     <a href="#quickstart" class="tc">Quickstart</a>
+    <a href="#keys" class="tc">API keys</a>
     <a href="#endpoints" class="tc">Endpoints</a>
     <a href="#errors" class="tc">Errors &amp; limits</a>
   </aside>
+</div>
+
+<!-- AI ASSISTANT -->
+<div class="ai-scrim" id="aiScrim"></div>
+<div class="ai" id="ai" role="dialog" aria-label="Documentation assistant">
+  <div class="ai-h">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" stroke-linejoin="round"/></svg></span>
+    <div><div class="t">Docs assistant</div><div class="s">Grounded in this API's documentation</div></div>
+    <button type="button" class="x" id="aiClose" aria-label="Close assistant">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="ai-body" id="aiBody">
+    <div class="ai-empty" id="aiEmpty">
+      <div class="big">Ask anything about this API</div>
+      <div style="font-size:13px">Endpoints, authentication, errors, integration.</div>
+      <div class="chips">
+        <button type="button" class="chip">How do I get an API key?</button>
+        <button type="button" class="chip">How do I check a wallet's role?</button>
+        <button type="button" class="chip">Why is there no database?</button>
+        <button type="button" class="chip">What does a 409 error mean?</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-f">
+    <div class="ai-in">
+      <textarea id="aiIn" rows="1" placeholder="Ask a question…" aria-label="Ask a question"></textarea>
+      <button type="button" id="aiSend" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="ai-note">AI-generated — verify against the reference. Press <b>Ctrl+I</b> to open.</div>
+  </div>
 </div>
 
 <script>
@@ -795,6 +967,102 @@ print(res.json()["explorerUrl"])</code></pre></div>
   scrim.addEventListener("click", function () { side.classList.remove("open"); scrim.classList.remove("on"); });
   side.querySelectorAll("a").forEach(function (a) {
     a.addEventListener("click", function () { side.classList.remove("open"); scrim.classList.remove("on"); });
+  });
+
+  /* ---------- AI assistant ---------- */
+  var ai = document.getElementById("ai"), aiScrim = document.getElementById("aiScrim");
+  var aiBody = document.getElementById("aiBody"), aiEmpty = document.getElementById("aiEmpty");
+  var aiIn = document.getElementById("aiIn"), aiSend = document.getElementById("aiSend");
+  var history = [], busy = false;
+
+  function aiToggle(open) {
+    ai.classList.toggle("on", open); aiScrim.classList.toggle("on", open);
+    if (open) setTimeout(function () { aiIn.focus(); }, 260);
+  }
+  document.getElementById("aiOpen").addEventListener("click", function () { aiToggle(true); });
+  document.getElementById("aiClose").addEventListener("click", function () { aiToggle(false); });
+  aiScrim.addEventListener("click", function () { aiToggle(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey && (e.key === "i" || e.key === "I")) { e.preventDefault(); aiToggle(!ai.classList.contains("on")); }
+    if (e.key === "Escape" && ai.classList.contains("on")) aiToggle(false);
+  });
+
+  // minimal markdown -> html (escaped first)
+  function md(src) {
+    var s = src.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    var blocks = [];
+    s = s.replace(/```(\w+)?\n?([\s\S]*?)```/g, function (_, l, c) {
+      blocks.push('<pre><code>' + c.replace(/\n$/, "") + "</code></pre>");
+      return " " + (blocks.length - 1) + " ";
+    });
+    s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    var out = s.split(/\n{2,}/).map(function (p) {
+      if (/^ \d+ $/.test(p.trim())) return p;
+      if (/^\s*[-*]\s+/m.test(p)) {
+        var items = p.split(/\n/).filter(function (l) { return /^\s*[-*]\s+/.test(l); })
+          .map(function (l) { return "<li>" + l.replace(/^\s*[-*]\s+/, "") + "</li>"; }).join("");
+        return "<ul>" + items + "</ul>";
+      }
+      return "<p>" + p.replace(/\n/g, "<br/>") + "</p>";
+    }).join("");
+    return out.replace(/ (\d+) /g, function (_, i) { return blocks[i]; });
+  }
+
+  function bubble(cls, html) {
+    var d = document.createElement("div");
+    d.className = "msg " + cls;
+    d.innerHTML = html;
+    aiBody.appendChild(d);
+    aiBody.scrollTop = aiBody.scrollHeight;
+    return d;
+  }
+
+  function ask(q) {
+    if (busy || !q.trim()) return;
+    busy = true; aiSend.disabled = true;
+    if (aiEmpty) aiEmpty.style.display = "none";
+    bubble("u", q.replace(/</g, "&lt;"));
+    aiIn.value = "";
+    var think = bubble("a", '<span class="dots"><span></span><span></span><span></span></span>');
+
+    fetch("/api/v1/assistant", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: q, history: history })
+    }).then(function (r) {
+      return r.json().then(function (j) { return { s: r.status, j: j }; });
+    }).then(function (res) {
+      if (res.s === 200 && res.j.answer) {
+        think.innerHTML = md(res.j.answer);
+        history.push({ role: "user", text: q });
+        history.push({ role: "model", text: res.j.answer });
+        history = history.slice(-6);
+      } else {
+        var m = (res.j.error && res.j.error.message) || "Something went wrong.";
+        if (res.s === 503) m = "The AI assistant isn't enabled on this instance yet. Everything you need is in the docs and the <a href='/docs/'>API reference</a>.";
+        think.innerHTML = "<p>" + m + "</p>";
+      }
+    }).catch(function () {
+      think.innerHTML = "<p>Could not reach the assistant. Check your connection and try again.</p>";
+    }).finally(function () {
+      busy = false; aiSend.disabled = false;
+      aiBody.scrollTop = aiBody.scrollHeight;
+      aiIn.focus();
+    });
+  }
+
+  aiSend.addEventListener("click", function () { ask(aiIn.value); });
+  aiIn.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(aiIn.value); }
+  });
+  aiIn.addEventListener("input", function () {
+    aiIn.style.height = "auto";
+    aiIn.style.height = Math.min(aiIn.scrollHeight, 120) + "px";
+  });
+  document.querySelectorAll(".chip").forEach(function (c) {
+    c.addEventListener("click", function () { ask(c.textContent); });
   });
 
   /* ---------- scroll spy ---------- */

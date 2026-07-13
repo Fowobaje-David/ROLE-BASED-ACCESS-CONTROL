@@ -1,7 +1,7 @@
 "use strict";
 const express = require("express");
 const asyncHandler = require("../middleware/asyncHandler");
-const requireApiKey = require("../middleware/auth");
+const { requireScope } = require("../middleware/auth");
 const { requireAddress, requireString } = require("../middleware/validate");
 const { readContract, writeContract } = require("../contract");
 const { notFound, serviceUnavailable } = require("../middleware/errors");
@@ -23,7 +23,7 @@ function operatorOr503() {
 // GET /api/v1/users  -> full user directory (contract: onlyRole OWNER, view/no gas).
 router.get(
   "/",
-  requireApiKey,
+  requireScope("read"),
   asyncHandler(async (req, res) => {
     const users = await operatorOr503().getAllUsers();
     res.json({ count: users.length, users: users.map(formatUser) });
@@ -33,7 +33,7 @@ router.get(
 // GET /api/v1/users/count  -> number of registered users (contract: onlyRole MODERATOR).
 router.get(
   "/count",
-  requireApiKey,
+  requireScope("read"),
   asyncHandler(async (req, res) => {
     const count = await operatorOr503().getUserCount();
     res.json({ count: Number(count) });
@@ -70,7 +70,7 @@ router.get(
 // POST /api/v1/users  { address, username }  -> registerUser (grants REGULAR_USER).
 router.post(
   "/",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     const address = requireAddress(req.body.address);
     const username = requireString(req.body.username, "username", { maxLength: 256 });
@@ -85,7 +85,7 @@ router.post(
 // DELETE /api/v1/users/:address  -> removeUser (deactivate + revoke roles).
 router.delete(
   "/:address",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     const address = requireAddress(req.params.address);
     const result = await sendTx(
@@ -99,7 +99,7 @@ router.delete(
 // POST /api/v1/users/:address/deactivate  -> deactivateUser (moderator action).
 router.post(
   "/:address/deactivate",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     const address = requireAddress(req.params.address);
     const result = await sendTx(
@@ -113,7 +113,7 @@ router.post(
 // POST /api/v1/users/:address/reactivate  -> reactivateUser (moderator action).
 router.post(
   "/:address/reactivate",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     const address = requireAddress(req.params.address);
     const result = await sendTx(

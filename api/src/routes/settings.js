@@ -1,7 +1,7 @@
 "use strict";
 const express = require("express");
 const asyncHandler = require("../middleware/asyncHandler");
-const requireApiKey = require("../middleware/auth");
+const { requireScope } = require("../middleware/auth");
 const { requireString } = require("../middleware/validate");
 const { readContract, writeContract } = require("../contract");
 const { serviceUnavailable } = require("../middleware/errors");
@@ -22,7 +22,7 @@ router.get(
 // PUT /api/v1/settings/:key  { value }  -> updateSystemSetting (owner action).
 router.put(
   "/:key",
-  requireApiKey,
+  requireScope("write"),
   asyncHandler(async (req, res) => {
     if (!writeContract) throw serviceUnavailable("Operator wallet not configured.");
     const key = requireString(req.params.key, "key", { maxLength: 256 });
