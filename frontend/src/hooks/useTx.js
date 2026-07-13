@@ -14,6 +14,14 @@ export function useTx() {
     setMessage(null);
   }, []);
 
+  // Surface a client-side validation problem in the same UI as a tx error,
+  // instead of a native alert().
+  const fail = useCallback((msg) => {
+    setStatus("error");
+    setTxHash(null);
+    setMessage(msg);
+  }, []);
+
   const run = useCallback(async (fn, successMessage) => {
     setStatus("pending");
     setTxHash(null);
@@ -32,5 +40,5 @@ export function useTx() {
     }
   }, []);
 
-  return { status, txHash, message, run, reset };
+  return { status, txHash, message, run, reset, fail };
 }

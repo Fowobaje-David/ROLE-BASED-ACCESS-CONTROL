@@ -4,24 +4,25 @@ import UserSection from "./sections/UserSection";
 import OwnerSection from "./sections/OwnerSection";
 import { TierHeading } from "./ui";
 
-// Moderator view: moderator + user actions enabled. Owner-only actions are shown
-// but visibly disabled with a "why + required role" explanation.
+// Moderator view: moderator + user actions enabled. Owner-only actions are still
+// shown, but visibly disabled with a "why + required role" explanation.
 export default function ModeratorDashboard({ role, writeContract, onChange }) {
+  const p = { role, writeContract, onChange };
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div>
-        <TierHeading>Moderation</TierHeading>
-        <ModeratorSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Available to you">Moderation</TierHeading>
+        <ModeratorSection {...p} />
       </div>
-
       <div>
-        <TierHeading>User actions</TierHeading>
-        <UserSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Available to you">Your account</TierHeading>
+        <UserSection {...p} />
       </div>
-
       <div>
-        <TierHeading>Owner tools — locked</TierHeading>
-        <OwnerSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Requires OWNER" locked>
+          Owner tools — locked
+        </TierHeading>
+        <OwnerSection {...p} />
       </div>
     </div>
   );

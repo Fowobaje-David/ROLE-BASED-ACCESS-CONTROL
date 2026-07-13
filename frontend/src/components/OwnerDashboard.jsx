@@ -6,21 +6,20 @@ import { TierHeading } from "./ui";
 
 // Owner view: full control — owner, moderator, and user actions all enabled.
 export default function OwnerDashboard({ role, writeContract, onChange }) {
+  const p = { role, writeContract, onChange };
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div>
-        <TierHeading>User & role management</TierHeading>
-        <OwnerSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Owner only">User &amp; role management</TierHeading>
+        <OwnerSection {...p} />
       </div>
-
       <div>
-        <TierHeading>Moderation</TierHeading>
-        <ModeratorSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Moderator">Moderation</TierHeading>
+        <ModeratorSection {...p} />
       </div>
-
       <div>
-        <TierHeading>User actions</TierHeading>
-        <UserSection role={role} writeContract={writeContract} onChange={onChange} />
+        <TierHeading hint="Everyone">Your account</TierHeading>
+        <UserSection {...p} />
       </div>
     </div>
   );
